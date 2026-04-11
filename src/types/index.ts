@@ -56,6 +56,24 @@ export interface JellyfinItemUpdate {
   genres?: string[];
 }
 
+export interface JellyfinRemoteImageInfo {
+  ProviderName?: string | null;
+  Url?: string | null;
+  ThumbnailUrl?: string | null;
+  Width?: number | null;
+  Height?: number | null;
+  CommunityRating?: number | null;
+  VoteCount?: number | null;
+  Language?: string | null;
+  Type?: ImageType;
+}
+
+export interface JellyfinRemoteImageResult {
+  Images?: JellyfinRemoteImageInfo[];
+  TotalRecordCount?: number;
+  Providers?: string[];
+}
+
 export interface JellyfinPerson {
   Id: string;
   Name: string;

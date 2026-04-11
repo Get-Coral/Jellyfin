@@ -27,6 +27,7 @@ export {
 // ── Items ─────────────────────────────────────────────────────────────────────
 export {
   deleteItem,
+  downloadRemoteImage,
   getContinueWatching,
   getFavoriteItems,
   getFeaturedItem,
@@ -34,6 +35,7 @@ export {
   getLatestMedia,
   getLibraryItems,
   getMostPlayed,
+  getRemoteImages,
   getSimilarItems,
   getWatchHistory,
   searchItems,
@@ -68,6 +70,8 @@ export type {
   JellyfinPerson,
   JellyfinPlaybackInfo,
   JellyfinPlaybackSession,
+  JellyfinRemoteImageInfo,
+  JellyfinRemoteImageResult,
   JellyfinResponse,
   JellyfinSystemInfo,
   JellyfinUser,

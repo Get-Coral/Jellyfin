@@ -1,8 +1,11 @@
 import type {
   GetLibraryItemsOptions,
+  ImageType,
   JellyfinItem,
   JellyfinItemUpdate,
   JellyfinMediaType,
+  JellyfinRemoteImageInfo,
+  JellyfinRemoteImageResult,
   JellyfinResponse,
 } from "../types/index.js";
 import type { JellyfinClient } from "./client.js";
@@ -254,4 +257,33 @@ export async function updateItem(
     }),
   });
   if (!res.ok) throw new Error(`Jellyfin update error: ${res.status}`);
+}
+
+export async function getRemoteImages(
+  client: JellyfinClient,
+  itemId: string,
+  type: ImageType = "Primary",
+): Promise<JellyfinRemoteImageInfo[]> {
+  const data = await client.fetch<JellyfinRemoteImageResult>(`/Items/${itemId}/RemoteImages`, {
+    Type: type,
+  });
+  return data.Images ?? [];
+}
+
+export async function downloadRemoteImage(
+  client: JellyfinClient,
+  itemId: string,
+  imageUrl: string,
+  type: ImageType = "Primary",
+): Promise<void> {
+  const res = await client.fetchRaw(`/Items/${itemId}/RemoteImages/Download`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      Type: type,
+      ImageUrl: imageUrl,
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Jellyfin remote image download error: ${res.status}`);
 }
