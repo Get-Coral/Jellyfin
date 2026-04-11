@@ -26,6 +26,8 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
+    outputs:
+      published_version: ${{ steps.package-version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +47,64 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Read package version
+        id: package-version
+        run: echo "version=$(node -p \"require('./package.json').version\")" >> "$GITHUB_OUTPUT"
+
       - name: Publish
         run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  open-upgrade-prs:
+    name: Open dependency upgrade PRs
+    needs: [release-please, publish]
+    if: ${{ needs.release-please.outputs.release_created && secrets.CORAL_AUTOMATION_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - Get-Coral/librarian
+          - Get-Coral/fathom
+          - Get-Coral/template
+          - Get-Coral/marquee
+          - Get-Coral/encore
+    steps:
+      - name: Check out dependent repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.CORAL_AUTOMATION_TOKEN }}
+          path: repo
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: repo/pnpm-lock.yaml
+
+      - name: Update Jellyfin dependency
+        working-directory: repo
+        env:
+          JELLYFIN_VERSION: ${{ needs.publish.outputs.published_version }}
+        run: |
+          pnpm add @get-coral/jellyfin@^${JELLYFIN_VERSION}
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.CORAL_AUTOMATION_TOKEN }}
+          path: repo
+          commit-message: "chore: bump @get-coral/jellyfin to ^${{ needs.publish.outputs.published_version }}"
+          branch: "automation/jellyfin-v${{ needs.publish.outputs.published_version }}"
+          delete-branch: true
+          title: "chore: bump @get-coral/jellyfin to ^${{ needs.publish.outputs.published_version }}"
+          body: |
+            This PR was opened automatically after releasing `@get-coral/jellyfin@${{ needs.publish.outputs.published_version }}`.
+
+            It updates the shared Jellyfin client dependency and refreshes the pnpm lockfile.
