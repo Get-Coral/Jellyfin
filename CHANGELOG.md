@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/Get-Coral/Jellyfin/compare/v1.0.0...v1.1.0) (2026-04-11)
+
+
+### Features
+
+* add updateItem function and JellyfinItemUpdate type for item modifications ([12b4bf8](https://github.com/Get-Coral/Jellyfin/commit/12b4bf8497b6fec8c03e12080a7a64a91506a528))
+
+
+### Bug Fixes
+
+* reorder JellyfinItemUpdate type in exports for consistency ([7e31c6d](https://github.com/Get-Coral/Jellyfin/commit/7e31c6d9d2166994d4468d25698f113abfc12c74))
+
 ## 1.0.0 (2026-04-11)
 
 
