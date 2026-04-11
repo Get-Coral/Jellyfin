@@ -1,0 +1,60 @@
+{
+  "name": "@get-coral/jellyfin",
+  "version": "0.1.0",
+  "description": "TypeScript client for the Jellyfin API — part of the Coral ecosystem",
+  "license": "MIT",
+  "author": "ElianCodes <hello@elian.codes>",
+  "homepage": "https://getcoral.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Get-Coral/jellyfin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Get-Coral/jellyfin/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "require": "./dist/types/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "biome lint . --write",
+    "format": "biome format . --write",
+    "check": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.9",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.3"
+  },
+  "keywords": [
+    "jellyfin",
+    "coral",
+    "self-hosted",
+    "media-server",
+    "api-client"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
