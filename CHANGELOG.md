@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Get-Coral/Jellyfin/compare/v1.1.0...v1.2.0) (2026-04-11)
+
+
+### Features
+
+* add remote image handling functions and types for items ([e52c8a3](https://github.com/Get-Coral/Jellyfin/commit/e52c8a3e49325b6f3fbcd5f9e3d52111a07fcebc))
+
 ## [1.1.0](https://github.com/Get-Coral/Jellyfin/compare/v1.0.0...v1.1.0) (2026-04-11)
 
 
