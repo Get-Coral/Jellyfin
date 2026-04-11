@@ -39,6 +39,7 @@ export {
   searchItems,
   setFavorite,
   setPlayed,
+  updateItem,
   updateItemName,
 } from "./modules/items.js";
 // ── Mapper ────────────────────────────────────────────────────────────────────
@@ -59,6 +60,7 @@ export type {
   JellyfinActiveSession,
   JellyfinClientConfig,
   JellyfinItem,
+  JellyfinItemUpdate,
   JellyfinItemCounts,
   JellyfinMediaSource,
   JellyfinMediaStream,

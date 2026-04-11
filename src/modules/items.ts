@@ -1,6 +1,7 @@
 import type {
   GetLibraryItemsOptions,
   JellyfinItem,
+  JellyfinItemUpdate,
   JellyfinMediaType,
   JellyfinResponse,
 } from "../types/index.js";
@@ -222,13 +223,35 @@ export async function updateItemName(
   id: string,
   name: string,
 ): Promise<void> {
+  await updateItem(client, id, { name });
+}
+
+export async function updateItem(
+  client: JellyfinClient,
+  id: string,
+  patch: JellyfinItemUpdate,
+): Promise<void> {
   const item = await getItem(client, id);
+  const nextOverview = patch.overview ?? item.Overview ?? "";
+  const nextProductionYear =
+    patch.productionYear === undefined
+      ? item.ProductionYear
+      : patch.productionYear === null
+        ? undefined
+        : patch.productionYear;
+  const nextGenres = patch.genres ?? item.GenreItems?.map((genre) => genre.Name) ?? [];
   const url = new URL(`${client.config.url}/Items/${id}`);
   url.searchParams.set("api_key", client.config.apiKey);
   const res = await fetch(url.toString(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...item, Name: name }),
+    body: JSON.stringify({
+      ...item,
+      Name: patch.name ?? item.Name,
+      Overview: nextOverview,
+      ProductionYear: nextProductionYear,
+      Genres: nextGenres,
+    }),
   });
   if (!res.ok) throw new Error(`Jellyfin update error: ${res.status}`);
 }

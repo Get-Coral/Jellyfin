@@ -23,6 +23,7 @@ export interface JellyfinItem {
   Id: string;
   Name: string;
   Type: JellyfinMediaType;
+  Genres?: string[];
   ProductionYear?: number;
   RunTimeTicks?: number;
   OfficialRating?: string;
@@ -46,6 +47,13 @@ export interface JellyfinItem {
   IndexNumber?: number;
   ParentIndexNumber?: number;
   UserData?: JellyfinUserData;
+}
+
+export interface JellyfinItemUpdate {
+  name?: string;
+  overview?: string;
+  productionYear?: number | null;
+  genres?: string[];
 }
 
 export interface JellyfinPerson {
