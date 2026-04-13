@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/Get-Coral/Jellyfin/compare/v1.4.0...v1.5.0) (2026-04-13)
+
+
+### Features
+
+* add uploadItemImageFromUrl function and quality metadata helpers ([a65d6cd](https://github.com/Get-Coral/Jellyfin/commit/a65d6cd0d6fe04f0ee2204139ef4a0f6a62a9fa2))
+
+
+### Bug Fixes
+
+* add covers ([e37133c](https://github.com/Get-Coral/Jellyfin/commit/e37133c0c5ce903dcc751c9789d5d688213c703c))
+* improve remote image download and upload error handling ([fd10342](https://github.com/Get-Coral/Jellyfin/commit/fd10342b230f5ec0a97df1a55540772614e6f9b2))
+* update upload function to use ArrayBuffer for image data ([cd77c1c](https://github.com/Get-Coral/Jellyfin/commit/cd77c1c6358c0cdf0f5d6f8228b3bba23b4e688e))
+
 ## [1.4.0](https://github.com/Get-Coral/Jellyfin/compare/v1.3.0...v1.4.0) (2026-04-13)
 
 
