@@ -287,3 +287,31 @@ export async function downloadRemoteImage(
 
   if (!res.ok) throw new Error(`Jellyfin remote image download error: ${res.status}`);
 }
+
+export async function uploadItemImageFromUrl(
+  client: JellyfinClient,
+  itemId: string,
+  imageUrl: string,
+  type: ImageType = "Primary",
+): Promise<void> {
+  const sourceResponse = await fetch(imageUrl);
+  if (!sourceResponse.ok) {
+    throw new Error(`Cover source fetch failed: ${sourceResponse.status}`);
+  }
+
+  const contentType = sourceResponse.headers.get("content-type")?.toLowerCase() ?? "";
+  if (!contentType.startsWith("image/")) {
+    throw new Error(`Cover source is not an image: ${contentType || "unknown content-type"}`);
+  }
+
+  const imageBuffer = await sourceResponse.arrayBuffer();
+  const uploadResponse = await client.fetchRaw(`/Items/${itemId}/Images/${type}`, {
+    method: "POST",
+    headers: { "Content-Type": contentType },
+    body: imageBuffer,
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error(`Jellyfin image upload error: ${uploadResponse.status}`);
+  }
+}

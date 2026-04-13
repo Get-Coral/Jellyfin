@@ -45,17 +45,23 @@ export {
   setPlayed,
   updateItem,
   updateItemName,
+  uploadItemImageFromUrl,
 } from "./modules/items.js";
 // ── Mapper ────────────────────────────────────────────────────────────────────
 export { fromJellyfin, fromJellyfinDetailed, isResumable } from "./modules/mapper.js";
-
 // ── Playback ──────────────────────────────────────────────────────────────────
 export { createPlaybackSession, syncPlaybackState } from "./modules/playback.js";
+export type { MetadataGapKey } from "./modules/quality.js";
+// ── Quality helpers ──────────────────────────────────────────────────────────
+export {
+  getMetadataGapKeys,
+  getMetadataGapReasons,
+  metadataGapReasonForKey,
+} from "./modules/quality.js";
 // ── Shows ─────────────────────────────────────────────────────────────────────
 export { getEpisodesForSeries, getNextUpForSeries } from "./modules/shows.js";
 // ── URL builders ──────────────────────────────────────────────────────────────
 export { imageUrl, personImageUrl, streamUrl, subtitleUrl, transcodeUrl } from "./modules/urls.js";
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 export type {
   DetailedMediaItem,
