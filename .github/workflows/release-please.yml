@@ -84,30 +84,50 @@ jobs:
       fail-fast: false
       matrix:
         repo:
+          - Get-Coral/aurora
+          - Get-Coral/KAPOW
           - Get-Coral/librarian
           - Get-Coral/fathom
           - Get-Coral/template
           - Get-Coral/marquee
           - Get-Coral/encore
     steps:
+      - name: Check automation token
+        id: token-check
+        run: |
+          if [ -n "${{ secrets.CORAL_AUTOMATION_TOKEN }}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip notice when token is unavailable
+        if: steps.token-check.outputs.available != 'true'
+        run: echo "Skipping dependency upgrade PR for ${{ matrix.repo }} because CORAL_AUTOMATION_TOKEN is not configured."
+
       - name: Check out dependent repo
+        if: steps.token-check.outputs.available == 'true'
         uses: actions/checkout@v4
         with:
           repository: ${{ matrix.repo }}
+          ref: main
           token: ${{ secrets.CORAL_AUTOMATION_TOKEN }}
           path: repo
 
       - uses: pnpm/action-setup@v4
+        if: steps.token-check.outputs.available == 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.token-check.outputs.available == 'true'
         with:
           node-version: 22
           cache: pnpm
           cache-dependency-path: repo/pnpm-lock.yaml
 
       - name: Update Jellyfin dependency
+        if: steps.token-check.outputs.available == 'true'
         working-directory: repo
         env:
           JELLYFIN_VERSION: ${{ needs.publish.outputs.published_version }}
@@ -115,6 +135,7 @@ jobs:
           pnpm add @get-coral/jellyfin@^${JELLYFIN_VERSION}
 
       - name: Create pull request
+        if: steps.token-check.outputs.available == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.CORAL_AUTOMATION_TOKEN }}
