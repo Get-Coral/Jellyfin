@@ -505,16 +505,30 @@ export async function downloadRemoteImage(
   imageUrl: string,
   type: ImageType = "Primary",
 ): Promise<void> {
-  const res = await client.fetchRaw(`/Items/${itemId}/RemoteImages/Download`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      Type: type,
-      ImageUrl: imageUrl,
-    }),
-  });
+  const queryUrl = new URL(`/Items/${itemId}/RemoteImages/Download`, client.config.url);
+  queryUrl.searchParams.set("api_key", client.config.apiKey);
+  queryUrl.searchParams.set("type", type);
+  queryUrl.searchParams.set("imageUrl", imageUrl);
 
-  if (!res.ok) throw new Error(`Jellyfin remote image download error: ${res.status}`);
+  let res = await fetch(queryUrl.toString(), { method: "POST" });
+  if (!res.ok) {
+    // Compatibility fallback for servers expecting JSON body despite OpenAPI query contract.
+    res = await client.fetchRaw(`/Items/${itemId}/RemoteImages/Download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Type: type,
+        ImageUrl: imageUrl,
+      }),
+    });
+  }
+
+  if (!res.ok) {
+    const details = (await res.text()).trim();
+    throw new Error(
+      `Jellyfin remote image download error: ${res.status}${details ? ` ${details.slice(0, 160)}` : ""}`,
+    );
+  }
 }
 
 function detectImageMimeType(bytes: Uint8Array): string | null {
@@ -595,28 +609,66 @@ async function tryUploadItemImage(
   ];
   const uploadMethods: Array<"POST" | "PUT"> = ["POST", "PUT"];
   const attemptErrors: string[] = [];
+  const binaryBody = new Uint8Array(imageBuffer);
 
-  for (const contentType of contentTypes) {
-    for (const path of uploadPaths) {
-      for (const method of uploadMethods) {
-        const response = await client.fetchRaw(path, {
-          method,
+  type UploadAuthStrategy = {
+    label: string;
+    send: (path: string, init: RequestInit) => Promise<Response>;
+  };
+
+  const authStrategies: UploadAuthStrategy[] = [
+    {
+      label: "api-key",
+      send: (path, init) => client.fetchRaw(path, init),
+    },
+  ];
+
+  let playbackToken: string | null = null;
+  try {
+    playbackToken = (await client.getPlaybackAuth())?.token ?? null;
+  } catch {
+    playbackToken = null;
+  }
+
+  if (playbackToken) {
+    authStrategies.push({
+      label: "session-token",
+      send: (path, init) =>
+        fetch(`${client.config.url}${path}`, {
+          ...init,
           headers: {
-            "Content-Type": contentType,
-            "X-Emby-Token": client.config.apiKey,
-            "X-MediaBrowser-Token": client.config.apiKey,
-            Accept: "*/*",
+            ...init.headers,
+            "X-Emby-Authorization": client.buildAuthHeader(playbackToken),
+            "X-Emby-Token": playbackToken,
+            Authorization: `MediaBrowser Token="${playbackToken}"`,
           },
-          body: imageBuffer,
-        });
+        }),
+    });
+  }
 
-        if (response.ok) {
-          return attemptErrors;
+  for (const authStrategy of authStrategies) {
+    for (const contentType of contentTypes) {
+      for (const path of uploadPaths) {
+        for (const method of uploadMethods) {
+          const response = await authStrategy.send(path, {
+            method,
+            headers: {
+              "Content-Type": contentType,
+              Accept: "*/*",
+            },
+            body: binaryBody,
+          });
+
+          if (response.ok) {
+            return attemptErrors;
+          }
+
+          const errorBody = (await response.text()).trim();
+          const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+          attemptErrors.push(
+            `[${authStrategy.label}] ${method} ${path} -> ${response.status}${bodySnippet}`,
+          );
         }
-
-        const errorBody = (await response.text()).trim();
-        const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
-        attemptErrors.push(`${method} ${path} -> ${response.status}${bodySnippet}`);
       }
     }
   }
@@ -711,7 +763,10 @@ export async function uploadItemImageFromUrl(
     return;
   }
 
-  const summary = attemptErrors.slice(0, 6).join(" | ");
+  const summary =
+    attemptErrors.length > 12
+      ? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
+      : attemptErrors.join(" | ");
   throw new Error(
     `Jellyfin image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
   );
