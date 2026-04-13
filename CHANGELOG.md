@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/Get-Coral/Jellyfin/compare/v1.3.0...v1.4.0) (2026-04-13)
+
+
+### Features
+
+* add searchCollectionItems ([9e8a6e0](https://github.com/Get-Coral/Jellyfin/commit/9e8a6e04027d3fa5352bd6c3322bc94e16b6dfce))
+
 ## [1.3.0](https://github.com/Get-Coral/Jellyfin/compare/v1.2.0...v1.3.0) (2026-04-13)
 
 
