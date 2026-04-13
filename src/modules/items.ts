@@ -595,27 +595,37 @@ function normalizeImageMimeType(value: string): string | null {
   return null;
 }
 
-async function tryUploadItemImage(
-  client: JellyfinClient,
-  itemId: string,
-  type: ImageType,
-  imageBuffer: ArrayBuffer,
+type UploadMethod = "POST" | "PUT";
+
+type UploadAuthStrategy = {
+  label: string;
+  send: (path: string, init: RequestInit) => Promise<Response>;
+};
+
+type UploadTarget = {
+  method: UploadMethod;
+  path: string;
+  contentType: string;
+};
+
+function buildUploadTargets(
+  uploadPaths: string[],
+  uploadMethods: UploadMethod[],
   contentTypes: string[],
-): Promise<string[]> {
-  const uploadPaths = [
-    `/Items/${itemId}/Images/${type}`,
-    `/Items/${itemId}/Images/${type}?imageIndex=0`,
-    `/Items/${itemId}/Images/${type}/0`,
-  ];
-  const uploadMethods: Array<"POST" | "PUT"> = ["POST", "PUT"];
-  const attemptErrors: string[] = [];
-  const binaryBody = new Uint8Array(imageBuffer);
+): UploadTarget[] {
+  const targets: UploadTarget[] = [];
+  for (const contentType of contentTypes) {
+    for (const path of uploadPaths) {
+      for (const method of uploadMethods) {
+        targets.push({ method, path, contentType });
+      }
+    }
+  }
 
-  type UploadAuthStrategy = {
-    label: string;
-    send: (path: string, init: RequestInit) => Promise<Response>;
-  };
+  return targets;
+}
 
+async function buildUploadAuthStrategies(client: JellyfinClient): Promise<UploadAuthStrategy[]> {
   const authStrategies: UploadAuthStrategy[] = [
     {
       label: "api-key",
@@ -646,30 +656,59 @@ async function tryUploadItemImage(
     });
   }
 
+  return authStrategies;
+}
+
+async function runUploadAttempt(
+  authStrategy: UploadAuthStrategy,
+  target: UploadTarget,
+  body: Uint8Array,
+): Promise<string | null> {
+  const response = await authStrategy.send(target.path, {
+    method: target.method,
+    headers: {
+      "Content-Type": target.contentType,
+      Accept: "*/*",
+    },
+    body,
+  });
+
+  if (response.ok) {
+    return null;
+  }
+
+  const errorBody = (await response.text()).trim();
+  const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+  return `[${authStrategy.label}] ${target.method} ${target.path} -> ${response.status}${bodySnippet}`;
+}
+
+async function tryUploadItemImage(
+  client: JellyfinClient,
+  itemId: string,
+  type: ImageType,
+  imageBuffer: ArrayBuffer,
+  contentTypes: string[],
+): Promise<string[]> {
+  const uploadPaths = [
+    `/Items/${itemId}/Images/${type}`,
+    `/Items/${itemId}/Images/${type}?imageIndex=0`,
+    `/Items/${itemId}/Images/${type}/0`,
+  ];
+  const uploadMethods: UploadMethod[] = ["POST", "PUT"];
+  const attemptErrors: string[] = [];
+  const binaryBody = new Uint8Array(imageBuffer);
+
+  const authStrategies = await buildUploadAuthStrategies(client);
+  const uploadTargets = buildUploadTargets(uploadPaths, uploadMethods, contentTypes);
+
   for (const authStrategy of authStrategies) {
-    for (const contentType of contentTypes) {
-      for (const path of uploadPaths) {
-        for (const method of uploadMethods) {
-          const response = await authStrategy.send(path, {
-            method,
-            headers: {
-              "Content-Type": contentType,
-              Accept: "*/*",
-            },
-            body: binaryBody,
-          });
-
-          if (response.ok) {
-            return attemptErrors;
-          }
-
-          const errorBody = (await response.text()).trim();
-          const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
-          attemptErrors.push(
-            `[${authStrategy.label}] ${method} ${path} -> ${response.status}${bodySnippet}`,
-          );
-        }
+    for (const target of uploadTargets) {
+      const attemptError = await runUploadAttempt(authStrategy, target, binaryBody);
+      if (attemptError === null) {
+        return attemptErrors;
       }
+
+      attemptErrors.push(attemptError);
     }
   }
 
