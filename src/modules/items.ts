@@ -662,7 +662,7 @@ async function buildUploadAuthStrategies(client: JellyfinClient): Promise<Upload
 async function runUploadAttempt(
   authStrategy: UploadAuthStrategy,
   target: UploadTarget,
-  body: Uint8Array,
+  body: ArrayBuffer,
 ): Promise<string | null> {
   const response = await authStrategy.send(target.path, {
     method: target.method,
@@ -696,14 +696,13 @@ async function tryUploadItemImage(
   ];
   const uploadMethods: UploadMethod[] = ["POST", "PUT"];
   const attemptErrors: string[] = [];
-  const binaryBody = new Uint8Array(imageBuffer);
 
   const authStrategies = await buildUploadAuthStrategies(client);
   const uploadTargets = buildUploadTargets(uploadPaths, uploadMethods, contentTypes);
 
   for (const authStrategy of authStrategies) {
     for (const target of uploadTargets) {
-      const attemptError = await runUploadAttempt(authStrategy, target, binaryBody);
+      const attemptError = await runUploadAttempt(authStrategy, target, imageBuffer);
       if (attemptError === null) {
         return attemptErrors;
       }
