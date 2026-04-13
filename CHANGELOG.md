@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/Get-Coral/Jellyfin/compare/v1.2.0...v1.3.0) (2026-04-13)
+
+
+### Features
+
+* enhance release workflow to update Jellyfin dependency and automate PR creation ([184de7c](https://github.com/Get-Coral/Jellyfin/commit/184de7c76e80ec187d6e0f6eddce243114e599c8))
+
+
+### Bug Fixes
+
+* use global defaults ([55650c0](https://github.com/Get-Coral/Jellyfin/commit/55650c0b600c62dd43282e72d27506c8eaba0df0))
+* use global defaults ([813fab6](https://github.com/Get-Coral/Jellyfin/commit/813fab6875f40341a08cb4562d101b7c38928dd7))
+
 ## [1.2.0](https://github.com/Get-Coral/Jellyfin/compare/v1.1.0...v1.2.0) (2026-04-11)
 
 
