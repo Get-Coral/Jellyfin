@@ -16,6 +16,7 @@ export {
 } from "./modules/admin.js";
 export type { PlaybackAuth } from "./modules/client.js";
 export { createClient, JellyfinClient, JellyfinError } from "./modules/client.js";
+export type { SearchCollectionItemsOptions } from "./modules/collections.js";
 // ── Collections ───────────────────────────────────────────────────────────────
 export {
   addItemsToCollection,
@@ -23,6 +24,7 @@ export {
   getCollectionItems,
   getCollections,
   removeItemsFromCollection,
+  searchCollectionItems,
 } from "./modules/collections.js";
 // ── Items ─────────────────────────────────────────────────────────────────────
 export {

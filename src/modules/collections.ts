@@ -1,6 +1,12 @@
 import type { JellyfinItem, JellyfinResponse } from "../types/index.js";
 import type { JellyfinClient } from "./client.js";
 
+export interface SearchCollectionItemsOptions {
+  query?: string;
+  limit?: number;
+  includeItemTypes?: string[];
+}
+
 export async function getCollections(client: JellyfinClient): Promise<JellyfinItem[]> {
   const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
     `/Users/${client.config.userId}/Items`,
@@ -28,6 +34,36 @@ export async function getCollectionItems(
       Fields: "Overview,GenreItems,UserData",
     },
   );
+  return data.Items;
+}
+
+export async function searchCollectionItems(
+  client: JellyfinClient,
+  collectionId: string,
+  options: SearchCollectionItemsOptions = {},
+): Promise<JellyfinItem[]> {
+  const { query, limit = 24, includeItemTypes = ["Movie", "Video", "MusicVideo"] } = options;
+
+  const params: Record<string, string> = {
+    ParentId: collectionId,
+    Recursive: "true",
+    SortBy: "SortName",
+    SortOrder: "Ascending",
+    Limit: String(limit),
+    IncludeItemTypes: includeItemTypes.join(","),
+    Fields: "Overview,GenreItems,UserData",
+  };
+
+  const trimmedQuery = query?.trim();
+  if (trimmedQuery) {
+    params.SearchTerm = trimmedQuery;
+  }
+
+  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+    `/Users/${client.config.userId}/Items`,
+    params,
+  );
+
   return data.Items;
 }
 
