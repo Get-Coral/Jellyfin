@@ -8,36 +8,64 @@ import type {
 import type { JellyfinClient } from "./client.js";
 import { imageUrl, personImageUrl, streamUrl } from "./urls.js";
 
+function resolveMediaType(type: JellyfinItem["Type"]): MediaType {
+  switch (type) {
+    case "Movie":
+      return "movie";
+    case "Episode":
+      return "episode";
+    case "BoxSet":
+      return "collection";
+    case "MusicAlbum":
+      return "music";
+    case "Book":
+      return "book";
+    default:
+      return "series";
+  }
+}
+
+function resolveRuntimeMinutes(item: JellyfinItem): number | undefined {
+  return item.RunTimeTicks ? Math.round(item.RunTimeTicks / 600_000_000) : undefined;
+}
+
+function resolveArtworkUrls(client: JellyfinClient, item: JellyfinItem) {
+  return {
+    posterUrl: item.ImageTags?.Primary ? imageUrl(client, item.Id, "Primary", 400) : undefined,
+    backdropUrl:
+      item.BackdropImageTags && item.BackdropImageTags.length > 0
+        ? imageUrl(client, item.Id, "Backdrop", 1920)
+        : undefined,
+    thumbUrl: item.ImageTags?.Thumb ? imageUrl(client, item.Id, "Thumb", 600) : undefined,
+    logoUrl: item.ImageTags?.Logo ? imageUrl(client, item.Id, "Logo", 900) : undefined,
+  };
+}
+
+function resolveStreamUrl(client: JellyfinClient, item: JellyfinItem, type: MediaType) {
+  return type === "collection" ? undefined : streamUrl(client, item.Id);
+}
+
+function resolveUserDataFields(item: JellyfinItem) {
+  return {
+    ...(item.UserData?.PlayedPercentage !== undefined && {
+      progress: item.UserData.PlayedPercentage,
+    }),
+    ...(item.UserData?.PlaybackPositionTicks !== undefined && {
+      playbackPositionTicks: item.UserData.PlaybackPositionTicks,
+    }),
+    ...(item.UserData?.Played !== undefined && { played: item.UserData.Played }),
+    ...(item.UserData?.IsFavorite !== undefined && { isFavorite: item.UserData.IsFavorite }),
+    ...(item.UserData?.LastPlayedDate !== undefined && {
+      watchedAt: item.UserData.LastPlayedDate,
+    }),
+  };
+}
+
 export function fromJellyfin(client: JellyfinClient, item: JellyfinItem): MediaItem {
-  const type: MediaType =
-    item.Type === "Movie"
-      ? "movie"
-      : item.Type === "Episode"
-        ? "episode"
-        : item.Type === "BoxSet"
-          ? "collection"
-          : item.Type === "MusicAlbum"
-            ? "music"
-            : item.Type === "Book"
-              ? "book"
-              : "series";
-
-  const runtimeMinutes = item.RunTimeTicks
-    ? Math.round(item.RunTimeTicks / 600_000_000)
-    : undefined;
-
-  const posterUrl = item.ImageTags?.Primary ? imageUrl(client, item.Id, "Primary", 400) : undefined;
-
-  const backdropUrl =
-    item.BackdropImageTags && item.BackdropImageTags.length > 0
-      ? imageUrl(client, item.Id, "Backdrop", 1920)
-      : undefined;
-
-  const thumbUrl = item.ImageTags?.Thumb ? imageUrl(client, item.Id, "Thumb", 600) : undefined;
-
-  const logoUrl = item.ImageTags?.Logo ? imageUrl(client, item.Id, "Logo", 900) : undefined;
-
-  const resolvedStreamUrl = type === "collection" ? undefined : streamUrl(client, item.Id);
+  const type = resolveMediaType(item.Type);
+  const runtimeMinutes = resolveRuntimeMinutes(item);
+  const artwork = resolveArtworkUrls(client, item);
+  const resolvedStreamUrl = resolveStreamUrl(client, item, type);
 
   return {
     id: item.Id,
@@ -50,25 +78,15 @@ export function fromJellyfin(client: JellyfinClient, item: JellyfinItem): MediaI
     ...(item.Overview !== undefined && { overview: item.Overview }),
     ...(item.CommunityRating !== undefined && { rating: item.CommunityRating }),
     ...(item.OfficialRating !== undefined && { ageRating: item.OfficialRating }),
-    ...(posterUrl !== undefined && { posterUrl }),
-    ...(backdropUrl !== undefined && { backdropUrl }),
-    ...(thumbUrl !== undefined && { thumbUrl }),
-    ...(logoUrl !== undefined && { logoUrl }),
-    ...(item.UserData?.PlayedPercentage !== undefined && {
-      progress: item.UserData.PlayedPercentage,
-    }),
-    ...(item.UserData?.PlaybackPositionTicks !== undefined && {
-      playbackPositionTicks: item.UserData.PlaybackPositionTicks,
-    }),
-    ...(item.UserData?.Played !== undefined && { played: item.UserData.Played }),
-    ...(item.UserData?.IsFavorite !== undefined && { isFavorite: item.UserData.IsFavorite }),
+    ...(artwork.posterUrl !== undefined && { posterUrl: artwork.posterUrl }),
+    ...(artwork.backdropUrl !== undefined && { backdropUrl: artwork.backdropUrl }),
+    ...(artwork.thumbUrl !== undefined && { thumbUrl: artwork.thumbUrl }),
+    ...(artwork.logoUrl !== undefined && { logoUrl: artwork.logoUrl }),
+    ...resolveUserDataFields(item),
     ...(item.SeriesName !== undefined && { seriesTitle: item.SeriesName }),
     ...(item.ParentIndexNumber !== undefined && { seasonNumber: item.ParentIndexNumber }),
     ...(item.IndexNumber !== undefined && { episodeNumber: item.IndexNumber }),
     ...(item.ChildCount !== undefined && { childCount: item.ChildCount }),
-    ...(item.UserData?.LastPlayedDate !== undefined && {
-      watchedAt: item.UserData.LastPlayedDate,
-    }),
     ...(resolvedStreamUrl !== undefined && { streamUrl: resolvedStreamUrl }),
   };
 }
