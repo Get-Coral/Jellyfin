@@ -26,11 +26,15 @@ export {
   removeItemsFromCollection,
   searchCollectionItems,
 } from "./modules/collections.js";
+export type { JellyfinCoverCandidate } from "./modules/items.js";
 // ── Items ─────────────────────────────────────────────────────────────────────
 export {
+  applyRemoteImageWithFallback,
   deleteItem,
   downloadRemoteImage,
   getContinueWatching,
+  getCoverCandidates,
+  getCoverCandidatesForItem,
   getFavoriteItems,
   getFeaturedItem,
   getItem,
