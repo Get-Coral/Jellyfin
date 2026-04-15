@@ -8,6 +8,50 @@ import type { JellyfinClient, PlaybackAuth } from "./client.js";
 import { setPlayed } from "./items.js";
 import { streamUrl, subtitleUrl, transcodeUrl } from "./urls.js";
 
+function buildDeviceProfile(prefersSafeVideo: boolean | undefined) {
+  return {
+    DirectPlayProfiles: [
+      {
+        Type: "Video",
+        Container: prefersSafeVideo ? "mp4" : "mp4,mkv,webm",
+        VideoCodec: prefersSafeVideo ? "h264" : "h264,vp8,vp9,av1",
+        AudioCodec: prefersSafeVideo ? "aac,mp3" : "aac,mp3,opus,flac,vorbis",
+      },
+      { Type: "Audio", Container: "mp3,aac,flac,ogg,opus" },
+    ],
+    TranscodingProfiles: [
+      prefersSafeVideo
+        ? {
+            Type: "Video",
+            Container: "ts",
+            VideoCodec: "h264",
+            AudioCodec: "aac",
+            Protocol: "hls",
+            Context: "Streaming",
+            MinSegments: 1,
+            SegmentLength: 3,
+            BreakOnNonKeyFrames: true,
+            EnableSubtitlesInManifest: true,
+            TranscodeSeekInfo: "Auto",
+          }
+        : {
+            Type: "Video",
+            Container: "mp4",
+            VideoCodec: "h264",
+            AudioCodec: "aac",
+            Protocol: "http",
+            Context: "Streaming",
+            TranscodeSeekInfo: "Auto",
+          },
+    ],
+    CodecProfiles: [],
+    SubtitleProfiles: [
+      { Format: "vtt", Method: prefersSafeVideo ? "Hls" : "External" },
+      { Format: "srt", Method: prefersSafeVideo ? "Hls" : "External" },
+    ],
+  };
+}
+
 export async function createPlaybackSession(
   client: JellyfinClient,
   itemId: string,
@@ -39,23 +83,7 @@ export async function createPlaybackSession(
       StartTimeTicks: 0,
       IsPlayback: true,
       AutoOpenLiveStream: true,
-      DeviceProfile: {
-        DirectPlayProfiles: [
-          {
-            Type: "Video",
-            Container: "mp4,mkv,webm",
-            VideoCodec: "h264,vp8,vp9,av1",
-            AudioCodec: "aac,mp3,opus,flac,vorbis",
-          },
-          { Type: "Audio", Container: "mp3,aac,flac,ogg,opus" },
-        ],
-        TranscodingProfiles: [],
-        CodecProfiles: [],
-        SubtitleProfiles: [
-          { Format: "vtt", Method: "External" },
-          { Format: "srt", Method: "External" },
-        ],
-      },
+      DeviceProfile: buildDeviceProfile(options?.prefersSafeVideo),
     }),
   });
 
@@ -84,7 +112,7 @@ export async function createPlaybackSession(
   };
 
   const resolvedStreamUrl = shouldTranscode
-    ? transcodeUrl(client, itemId, urlOptions)
+    ? resolveTranscodeStreamUrl(client, itemId, mediaSource?.TranscodingUrl, urlOptions)
     : streamUrl(client, itemId, urlOptions);
 
   const subtitleTracks: SubtitleTrack[] = (mediaSource?.MediaStreams ?? [])
@@ -107,6 +135,29 @@ export async function createPlaybackSession(
     ...(mediaSourceId !== undefined && { mediaSourceId }),
     ...(sessionId !== undefined && { sessionId }),
   };
+}
+
+function resolveTranscodeStreamUrl(
+  client: JellyfinClient,
+  itemId: string,
+  transcodingUrl: string | null | undefined,
+  options?: { playSessionId?: string; mediaSourceId?: string },
+): string {
+  if (!transcodingUrl) {
+    return transcodeUrl(client, itemId, options);
+  }
+
+  const url = new URL(transcodingUrl, `${client.config.url}/`);
+  if (!url.searchParams.has("api_key")) {
+    url.searchParams.set("api_key", client.config.apiKey);
+  }
+  if (options?.playSessionId && !url.searchParams.has("PlaySessionId")) {
+    url.searchParams.set("PlaySessionId", options.playSessionId);
+  }
+  if (options?.mediaSourceId && !url.searchParams.has("MediaSourceId")) {
+    url.searchParams.set("MediaSourceId", options.mediaSourceId);
+  }
+  return url.toString();
 }
 
 export async function syncPlaybackState(
