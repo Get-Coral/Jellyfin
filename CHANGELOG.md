@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/Get-Coral/Jellyfin/compare/v1.5.0...v1.6.0) (2026-04-15)
+
+
+### Features
+
+* implement dynamic device profile generation for playback sessions ([bb8c177](https://github.com/Get-Coral/Jellyfin/commit/bb8c177abd682cdbe1776ade976bade4715cd80f))
+
+
+### Bug Fixes
+
+* add lower rate for first chunch ([05c2ae7](https://github.com/Get-Coral/Jellyfin/commit/05c2ae71b610a7f44b303fa2a37532ba2a863c6f))
+
 ## [1.5.0](https://github.com/Get-Coral/Jellyfin/compare/v1.4.0...v1.5.0) (2026-04-13)
 
 
