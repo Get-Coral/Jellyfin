@@ -8,6 +8,10 @@ import type { JellyfinClient, PlaybackAuth } from "./client.js";
 import { setPlayed } from "./items.js";
 import { streamUrl, subtitleUrl, transcodeUrl } from "./urls.js";
 
+const SAFE_HLS_MAX_STREAMING_BITRATE = 8_000_000;
+const SAFE_HLS_VIDEO_BITRATE = 6_000_000;
+const SAFE_HLS_AUDIO_BITRATE = 192_000;
+
 function buildDeviceProfile(prefersSafeVideo: boolean | undefined) {
   return {
     DirectPlayProfiles: [
@@ -31,7 +35,6 @@ function buildDeviceProfile(prefersSafeVideo: boolean | undefined) {
             MinSegments: 1,
             SegmentLength: 3,
             BreakOnNonKeyFrames: true,
-            EnableSubtitlesInManifest: true,
             TranscodeSeekInfo: "Auto",
           }
         : {
@@ -46,8 +49,8 @@ function buildDeviceProfile(prefersSafeVideo: boolean | undefined) {
     ],
     CodecProfiles: [],
     SubtitleProfiles: [
-      { Format: "vtt", Method: prefersSafeVideo ? "Hls" : "External" },
-      { Format: "srt", Method: prefersSafeVideo ? "Hls" : "External" },
+      { Format: "vtt", Method: "External" },
+      { Format: "srt", Method: "External" },
     ],
   };
 }
@@ -112,7 +115,13 @@ export async function createPlaybackSession(
   };
 
   const resolvedStreamUrl = shouldTranscode
-    ? resolveTranscodeStreamUrl(client, itemId, mediaSource?.TranscodingUrl, urlOptions)
+    ? resolveTranscodeStreamUrl(
+        client,
+        itemId,
+        mediaSource?.TranscodingUrl,
+        urlOptions,
+        options?.prefersSafeVideo === true,
+      )
     : streamUrl(client, itemId, urlOptions);
 
   const subtitleTracks: SubtitleTrack[] = (mediaSource?.MediaStreams ?? [])
@@ -142,6 +151,7 @@ function resolveTranscodeStreamUrl(
   itemId: string,
   transcodingUrl: string | null | undefined,
   options?: { playSessionId?: string; mediaSourceId?: string },
+  prefersSafeVideo?: boolean,
 ): string {
   if (!transcodingUrl) {
     return transcodeUrl(client, itemId, options);
@@ -157,6 +167,17 @@ function resolveTranscodeStreamUrl(
   if (options?.mediaSourceId && !url.searchParams.has("MediaSourceId")) {
     url.searchParams.set("MediaSourceId", options.mediaSourceId);
   }
+
+  const isHlsTranscode = url.pathname.endsWith(".m3u8") || url.searchParams.get("SegmentContainer") === "ts";
+  if (prefersSafeVideo && isHlsTranscode) {
+    url.searchParams.set("MaxStreamingBitrate", String(SAFE_HLS_MAX_STREAMING_BITRATE));
+    url.searchParams.set("VideoBitrate", String(SAFE_HLS_VIDEO_BITRATE));
+    url.searchParams.set("AudioBitrate", String(SAFE_HLS_AUDIO_BITRATE));
+    url.searchParams.delete("EnableSubtitlesInManifest");
+    url.searchParams.delete("SubtitleMethod");
+    url.searchParams.delete("SubtitleStreamIndex");
+  }
+
   return url.toString();
 }
 
