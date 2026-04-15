@@ -168,7 +168,8 @@ function resolveTranscodeStreamUrl(
     url.searchParams.set("MediaSourceId", options.mediaSourceId);
   }
 
-  const isHlsTranscode = url.pathname.endsWith(".m3u8") || url.searchParams.get("SegmentContainer") === "ts";
+  const isHlsTranscode =
+    url.pathname.endsWith(".m3u8") || url.searchParams.get("SegmentContainer") === "ts";
   if (prefersSafeVideo && isHlsTranscode) {
     url.searchParams.set("MaxStreamingBitrate", String(SAFE_HLS_MAX_STREAMING_BITRATE));
     url.searchParams.set("VideoBitrate", String(SAFE_HLS_VIDEO_BITRATE));
