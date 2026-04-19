@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.5](https://github.com/Get-Coral/Jellyfin/compare/v1.6.4...v1.6.5) (2026-04-19)
+
+
+### Bug Fixes
+
+* update uploadUserPrimaryImage to validate specific image types and use ArrayBuffer directly ([2ae34e6](https://github.com/Get-Coral/Jellyfin/commit/2ae34e60956d0694d0a222b14a81a3e7730fdbf9))
+
 ## [1.6.4](https://github.com/Get-Coral/Jellyfin/compare/v1.6.3...v1.6.4) (2026-04-19)
 
 
