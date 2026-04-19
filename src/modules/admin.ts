@@ -45,6 +45,24 @@ export async function updateUserPolicy(
   if (!res.ok) throw new Error(`Update user policy: ${res.status}`);
 }
 
+export async function patchUserPolicy(
+  client: JellyfinClient,
+  userId: string,
+  patch: Partial<JellyfinUserPolicy>,
+): Promise<void> {
+  const user = await getUserById(client, userId);
+  const merged = { ...user.Policy, ...patch } as JellyfinUserPolicy;
+  await updateUserPolicy(client, userId, merged);
+}
+
+export async function disableUser(client: JellyfinClient, userId: string): Promise<void> {
+  await patchUserPolicy(client, userId, { IsDisabled: true });
+}
+
+export async function enableUser(client: JellyfinClient, userId: string): Promise<void> {
+  await patchUserPolicy(client, userId, { IsDisabled: false });
+}
+
 export async function deleteUser(client: JellyfinClient, userId: string): Promise<void> {
   const res = await client.fetchRaw(`/Users/${userId}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`Delete user: ${res.status}`);
