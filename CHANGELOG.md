@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.4](https://github.com/Get-Coral/Jellyfin/compare/v1.6.3...v1.6.4) (2026-04-19)
+
+
+### Bug Fixes
+
+* update uploadUserPrimaryImage to handle base64 encoding for image uploads ([dcc258c](https://github.com/Get-Coral/Jellyfin/commit/dcc258c3ee70adf31b269223c30e3d76bdf81793))
+
 ## [1.6.3](https://github.com/Get-Coral/Jellyfin/compare/v1.6.2...v1.6.3) (2026-04-19)
 
 
