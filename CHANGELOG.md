@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/Get-Coral/Jellyfin/compare/v1.6.2...v1.6.3) (2026-04-19)
+
+
+### Bug Fixes
+
+* add uploadUserPrimaryImage function for user image uploads ([3d1e355](https://github.com/Get-Coral/Jellyfin/commit/3d1e3553bddb1e96e188912f5aeb92ba0513cc08))
+
 ## [1.6.2](https://github.com/Get-Coral/Jellyfin/compare/v1.6.1...v1.6.2) (2026-04-19)
 
 
