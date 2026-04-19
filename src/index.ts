@@ -15,10 +15,10 @@ export {
   patchUserPolicy,
   scanAllLibraries,
   scanLibrary,
-  uploadUserPrimaryImage,
   updateUserPassword,
-  updateUserPrimaryImage,
   updateUserPolicy,
+  updateUserPrimaryImage,
+  uploadUserPrimaryImage,
 } from "./modules/admin.js";
 export type { PlaybackAuth } from "./modules/client.js";
 export { createClient, JellyfinClient, JellyfinError } from "./modules/client.js";
