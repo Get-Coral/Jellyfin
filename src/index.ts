@@ -15,6 +15,8 @@ export {
   patchUserPolicy,
   scanAllLibraries,
   scanLibrary,
+  updateUserPassword,
+  updateUserPrimaryImage,
   updateUserPolicy,
 } from "./modules/admin.js";
 export type { PlaybackAuth } from "./modules/client.js";

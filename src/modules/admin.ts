@@ -84,6 +84,39 @@ export async function createUser(
   return res.json() as Promise<JellyfinUser>;
 }
 
+export async function updateUserPassword(
+  client: JellyfinClient,
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const res = await client.fetchRaw(`/Users/${userId}/Password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      Id: userId,
+      CurrentPw: currentPassword,
+      NewPw: newPassword,
+      ResetPassword: false,
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Update user password: ${res.status}`);
+}
+
+export async function updateUserPrimaryImage(
+  client: JellyfinClient,
+  userId: string,
+  imageUrl: string,
+): Promise<void> {
+  const path = `/Items/${encodeURIComponent(userId)}/RemoteImages/Download?Type=Primary&ImageUrl=${encodeURIComponent(
+    imageUrl.trim(),
+  )}`;
+  const res = await client.fetchRaw(path, { method: "POST" });
+
+  if (!res.ok) throw new Error(`Update user image: ${res.status}`);
+}
+
 export async function getVirtualFolders(client: JellyfinClient): Promise<JellyfinVirtualFolder[]> {
   return client.fetch<JellyfinVirtualFolder[]>("/Library/VirtualFolders");
 }
