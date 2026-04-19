@@ -3,6 +3,8 @@
 > A fully typed TypeScript client for the Jellyfin API — part of the [Coral](https://getcoral.dev) ecosystem.
 
 [![npm](https://img.shields.io/npm/v/@get-coral/jellyfin?style=flat-square&color=ff6b6b)](https://www.npmjs.com/package/@get-coral/jellyfin)
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-ElianCodes-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/ElianCodes)
+[![Discord](https://img.shields.io/discord/1495441903297237043?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/M3wzFpGbzp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2dd4bf?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Build](https://img.shields.io/github/actions/workflow/status/Get-Coral/jellyfin/ci.yml?style=flat-square)](https://github.com/Get-Coral/jellyfin/actions)
 
