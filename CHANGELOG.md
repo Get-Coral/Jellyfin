@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/Get-Coral/Jellyfin/compare/v1.6.0...v1.6.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* add user policies ([dc2f739](https://github.com/Get-Coral/Jellyfin/commit/dc2f739693fadb2a6312621f2a099cfa878f8427))
+
 ## [1.6.0](https://github.com/Get-Coral/Jellyfin/compare/v1.5.0...v1.6.0) (2026-04-15)
 
 

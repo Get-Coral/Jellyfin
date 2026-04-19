@@ -1,6 +1,6 @@
 {
   "name": "@get-coral/jellyfin",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "TypeScript client for the Jellyfin API — part of the Coral ecosystem",
   "license": "MIT",
   "author": "ElianCodes <hello@elian.codes>",
