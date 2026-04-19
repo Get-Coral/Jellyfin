@@ -8,6 +8,8 @@ import type {
 } from "../types/index.js";
 import type { JellyfinClient } from "./client.js";
 
+type UploadMethod = "POST" | "PUT";
+
 export async function getSystemInfo(client: JellyfinClient): Promise<JellyfinSystemInfo> {
   return client.fetch<JellyfinSystemInfo>("/System/Info");
 }
@@ -115,6 +117,58 @@ export async function updateUserPrimaryImage(
   const res = await client.fetchRaw(path, { method: "POST" });
 
   if (!res.ok) throw new Error(`Update user image: ${res.status}`);
+}
+
+export async function uploadUserPrimaryImage(
+  client: JellyfinClient,
+  userId: string,
+  imageBuffer: ArrayBuffer,
+  contentType: string,
+): Promise<void> {
+  const normalizedContentType = contentType.trim().toLowerCase();
+  if (!normalizedContentType.startsWith("image/")) {
+    throw new Error(`Unsupported user image content type: ${contentType || "unknown"}`);
+  }
+
+  const uploadPaths = [
+    `/Users/${encodeURIComponent(userId)}/Images/Primary`,
+    `/Users/${encodeURIComponent(userId)}/Images/Primary?imageIndex=0`,
+    `/Users/${encodeURIComponent(userId)}/Images/Primary/0`,
+    `/Items/${encodeURIComponent(userId)}/Images/Primary`,
+    `/Items/${encodeURIComponent(userId)}/Images/Primary?imageIndex=0`,
+    `/Items/${encodeURIComponent(userId)}/Images/Primary/0`,
+  ];
+  const uploadMethods: UploadMethod[] = ["POST", "PUT"];
+  const attemptErrors: string[] = [];
+
+  for (const method of uploadMethods) {
+    for (const path of uploadPaths) {
+      const response = await client.fetchRaw(path, {
+        method,
+        headers: {
+          "Content-Type": normalizedContentType,
+          Accept: "*/*",
+        },
+        body: imageBuffer,
+      });
+
+      if (response.ok) {
+        return;
+      }
+
+      const errorBody = (await response.text()).trim();
+      const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+      attemptErrors.push(`${method} ${path} -> ${response.status}${bodySnippet}`);
+    }
+  }
+
+  const summary =
+    attemptErrors.length > 12
+      ? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
+      : attemptErrors.join(" | ");
+  throw new Error(
+    `Jellyfin user image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
+  );
 }
 
 export async function getVirtualFolders(client: JellyfinClient): Promise<JellyfinVirtualFolder[]> {

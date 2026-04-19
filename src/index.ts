@@ -15,6 +15,7 @@ export {
   patchUserPolicy,
   scanAllLibraries,
   scanLibrary,
+  uploadUserPrimaryImage,
   updateUserPassword,
   updateUserPrimaryImage,
   updateUserPolicy,
