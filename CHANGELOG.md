@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/Get-Coral/Jellyfin/compare/v1.6.1...v1.6.2) (2026-04-19)
+
+
+### Bug Fixes
+
+* add updateUserPassword and updateUserPrimaryImage functions ([24b1b32](https://github.com/Get-Coral/Jellyfin/commit/24b1b32cc7cbd077137424172cbd5337be5997e1))
+
 ## [1.6.1](https://github.com/Get-Coral/Jellyfin/compare/v1.6.0...v1.6.1) (2026-04-19)
 
 
