@@ -126,25 +126,19 @@ export async function uploadUserPrimaryImage(
   contentType: string,
 ): Promise<void> {
   const normalizedContentType = contentType.trim().toLowerCase();
-  if (!normalizedContentType.startsWith("image/")) {
+  if (
+    normalizedContentType !== "image/jpeg" &&
+    normalizedContentType !== "image/png" &&
+    normalizedContentType !== "image/gif" &&
+    normalizedContentType !== "image/webp"
+  ) {
     throw new Error(`Unsupported user image content type: ${contentType || "unknown"}`);
   }
-
-  let binary = "";
-  const bytes = new Uint8Array(imageBuffer);
-  const chunkSize = 0x8000;
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-  const imageBase64 = btoa(binary);
 
   const uploadPaths = [
     `/UserImage?userId=${encodeURIComponent(userId)}`,
     `/Users/${encodeURIComponent(userId)}/Images/Primary/0`,
     `/Users/${encodeURIComponent(userId)}/Images/Primary`,
-    `/Items/${encodeURIComponent(userId)}/Images/Primary`,
-    `/Items/${encodeURIComponent(userId)}/Images/Primary/0`,
   ];
   const uploadMethods: UploadMethod[] = ["POST"];
   const attemptErrors: string[] = [];
@@ -157,7 +151,7 @@ export async function uploadUserPrimaryImage(
           "Content-Type": normalizedContentType,
           Accept: "*/*",
         },
-        body: imageBase64,
+        body: imageBuffer,
       });
 
       if (response.ok) {
