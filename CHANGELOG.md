@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/Get-Coral/Jellyfin/compare/v1.6.5...v1.7.0) (2026-07-10)
+
+
+### Features
+
+* add authenticateUserByName for user login flows ([08e781f](https://github.com/Get-Coral/Jellyfin/commit/08e781f8084900096e94f8f6f614f0169301ec27))
+* add authenticateUserByName for user login flows ([dc815d4](https://github.com/Get-Coral/Jellyfin/commit/dc815d45cd303a616d9598ba15d99b5fb83ec92f))
+
 ## [1.6.5](https://github.com/Get-Coral/Jellyfin/compare/v1.6.4...v1.6.5) (2026-04-19)
 
 
