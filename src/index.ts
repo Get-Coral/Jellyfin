@@ -20,8 +20,13 @@ export {
   updateUserPrimaryImage,
   uploadUserPrimaryImage,
 } from "./modules/admin.js";
-export type { PlaybackAuth } from "./modules/client.js";
-export { createClient, JellyfinClient, JellyfinError } from "./modules/client.js";
+export type { JellyfinAuthenticationResult, PlaybackAuth } from "./modules/client.js";
+export {
+  authenticateUserByName,
+  createClient,
+  JellyfinClient,
+  JellyfinError,
+} from "./modules/client.js";
 export type { SearchCollectionItemsOptions } from "./modules/collections.js";
 // ── Collections ───────────────────────────────────────────────────────────────
 export {

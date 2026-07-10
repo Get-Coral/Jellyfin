@@ -1,4 +1,4 @@
-import type { JellyfinAuthResponse, JellyfinClientConfig } from "../types/index.js";
+import type { JellyfinAuthResponse, JellyfinClientConfig, JellyfinUser } from "../types/index.js";
 
 export interface PlaybackAuth {
   cacheKey: string;
@@ -147,6 +147,53 @@ export class JellyfinClient {
 
     return true;
   }
+}
+
+export interface JellyfinAuthenticationResult {
+  user: JellyfinUser;
+  accessToken: string;
+  sessionId?: string | undefined;
+}
+
+/**
+ * Authenticate a user with their Jellyfin username and password via
+ * `/Users/AuthenticateByName`. Unlike `getPlaybackAuth`, this returns the
+ * authenticated user's identity, so callers can build login flows on top of
+ * it. Throws a `JellyfinError` with the upstream status (401 for invalid
+ * credentials or disabled users).
+ */
+export async function authenticateUserByName(
+  client: JellyfinClient,
+  username: string,
+  password: string,
+): Promise<JellyfinAuthenticationResult> {
+  const res = await fetch(`${client.config.url}/Users/AuthenticateByName`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Emby-Authorization": client.buildAuthHeader(),
+    },
+    body: JSON.stringify({ Username: username, Pw: password }),
+  });
+
+  if (!res.ok) {
+    throw new JellyfinError(
+      `Jellyfin authentication failed: ${res.status} ${res.statusText}`,
+      res.status,
+    );
+  }
+
+  const data = (await res.json()) as JellyfinAuthResponse;
+  if (!data.AccessToken || !data.User?.Id) {
+    throw new JellyfinError("Jellyfin authentication failed: incomplete response", 401);
+  }
+
+  const sessionId = data.SessionInfo?.Id;
+  return {
+    user: data.User,
+    accessToken: data.AccessToken,
+    ...(sessionId !== undefined && { sessionId }),
+  };
 }
 
 export class JellyfinError extends Error {
