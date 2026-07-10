@@ -125,6 +125,7 @@ export interface JellyfinPlaybackInfo {
 export interface JellyfinAuthResponse {
   AccessToken?: string;
   SessionInfo?: { Id?: string };
+  User?: JellyfinUser;
 }
 
 export interface JellyfinSystemInfo {
