@@ -56,6 +56,10 @@ const client = createClient({
   username?: string
   password?: string
 
+  // Optional — a ready Jellyfin access token (e.g. from authenticateUserByName).
+  // When set, playback auth uses it directly instead of re-authenticating.
+  accessToken?: string
+
   // Optional — how this client identifies itself in Jellyfin's active sessions
   clientName?: string  // default: 'Coral'
   deviceName?: string  // default: 'Coral Web'
@@ -197,6 +201,30 @@ createPlaybackSession(client, itemId, options?)
 syncPlaybackState(client, input)
 // Reports playback position back to Jellyfin (progress, pause, stop, played)
 ```
+
+---
+
+### Authentication & sessions
+
+```ts
+// Sign a user in with their Jellyfin username/password.
+// Returns their identity and a real Jellyfin access token.
+const { user, accessToken, sessionId } = await authenticateUserByName(client, 'alice', 'secret')
+
+// Act as that user: playback and progress sync run under their token
+const userClient = createClient({
+  url,
+  apiKey,
+  userId: user.Id,
+  accessToken,
+  deviceId: 'my-app-session-1234',
+})
+
+// End the session again (revokes the token)
+await logoutUserSession(client, accessToken)
+```
+
+Give every session a **unique `deviceId`** — Jellyfin revokes the previous token when the same user re-authenticates with the same device id, so a shared id makes concurrent sign-ins invalidate each other. `authenticateUserByName` throws a `JellyfinError` with status 401 for invalid credentials or disabled users.
 
 ---
 
