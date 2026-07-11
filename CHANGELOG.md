@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/Get-Coral/Jellyfin/compare/v1.7.0...v1.8.0) (2026-07-11)
+
+
+### Features
+
+* support pre-authenticated access tokens and session logout ([115b311](https://github.com/Get-Coral/Jellyfin/commit/115b3115f52305df02cf30257a24674a307c6a75))
+* support pre-authenticated access tokens and session logout ([2a301d7](https://github.com/Get-Coral/Jellyfin/commit/2a301d7cf292aa70173ad3744db72b37417b5929))
+
 ## [1.7.0](https://github.com/Get-Coral/Jellyfin/compare/v1.6.5...v1.7.0) (2026-07-10)
 
 
