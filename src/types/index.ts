@@ -260,6 +260,12 @@ export interface JellyfinClientConfig {
   userId: string;
   username?: string;
   password?: string;
+  /**
+   * A ready Jellyfin access token (e.g. from `authenticateUserByName`).
+   * When set, playback authentication uses this token directly instead of
+   * re-authenticating with username/password.
+   */
+  accessToken?: string;
   clientName?: string;
   deviceName?: string;
   deviceId?: string;

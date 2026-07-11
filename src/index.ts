@@ -26,6 +26,7 @@ export {
   createClient,
   JellyfinClient,
   JellyfinError,
+  logoutUserSession,
 } from "./modules/client.js";
 export type { SearchCollectionItemsOptions } from "./modules/collections.js";
 // ── Collections ───────────────────────────────────────────────────────────────

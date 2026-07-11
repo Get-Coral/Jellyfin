@@ -12,6 +12,7 @@ interface ResolvedConfig {
   userId: string;
   username?: string | undefined;
   password?: string | undefined;
+  accessToken?: string | undefined;
   clientName: string;
   deviceName: string;
   deviceId: string;
@@ -29,6 +30,7 @@ export class JellyfinClient {
       userId: config.userId,
       ...(config.username !== undefined && { username: config.username }),
       ...(config.password !== undefined && { password: config.password }),
+      ...(config.accessToken !== undefined && { accessToken: config.accessToken }),
       clientName: config.clientName ?? "Coral",
       deviceName: config.deviceName ?? "Coral Web",
       deviceId: config.deviceId ?? "coral-web",
@@ -76,6 +78,13 @@ export class JellyfinClient {
   }
 
   async getPlaybackAuth(forceRefresh = false): Promise<PlaybackAuth | null> {
+    if (this.config.accessToken) {
+      return {
+        cacheKey: `${this.config.url}::token::${this.config.userId}`,
+        token: this.config.accessToken,
+      };
+    }
+
     if (!this.config.username || !this.config.password) return null;
 
     const cacheKey = this.#playbackCacheKey();
@@ -136,7 +145,8 @@ export class JellyfinClient {
       body: JSON.stringify(payload),
     });
 
-    if (res.status === 401 && !forceRefresh) {
+    // A static access token cannot be refreshed by re-authenticating.
+    if (res.status === 401 && !forceRefresh && !this.config.accessToken) {
       this.#playbackAuth = null;
       return this.playbackRequest(path, payload, true);
     }
@@ -194,6 +204,25 @@ export async function authenticateUserByName(
     accessToken: data.AccessToken,
     ...(sessionId !== undefined && { sessionId }),
   };
+}
+
+/**
+ * Revoke a Jellyfin access token by ending its session (`/Sessions/Logout`).
+ * Returns true when the session was revoked (or was already invalid).
+ */
+export async function logoutUserSession(
+  client: JellyfinClient,
+  accessToken: string,
+): Promise<boolean> {
+  const res = await fetch(`${client.config.url}/Sessions/Logout`, {
+    method: "POST",
+    headers: {
+      "X-Emby-Authorization": client.buildAuthHeader(accessToken),
+      "X-Emby-Token": accessToken,
+    },
+  });
+
+  return res.ok || res.status === 401;
 }
 
 export class JellyfinError extends Error {
