@@ -4,6 +4,7 @@
 export {
   createUser,
   deleteUser,
+  deleteUserPrimaryImage,
   disableUser,
   enableUser,
   getActiveSessions,
