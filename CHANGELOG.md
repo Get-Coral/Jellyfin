@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.0](https://github.com/Get-Coral/Jellyfin/compare/v1.8.0...v1.9.0) (2026-07-12)
+
+
+### Features
+
+* user avatar helpers for the Aurora profile-picture feature ([6726e16](https://github.com/Get-Coral/Jellyfin/commit/6726e1672aa158429699b29821ba041afdbcf454))
+* user avatar helpers for the Aurora profile-picture feature ([1f9c664](https://github.com/Get-Coral/Jellyfin/commit/1f9c6649050817c621ee248896f82ece121e1077))
+
 ## [1.8.0](https://github.com/Get-Coral/Jellyfin/compare/v1.7.0...v1.8.0) (2026-07-11)
 
 
