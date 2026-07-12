@@ -10,6 +10,22 @@ import type { JellyfinClient } from "./client.js";
 
 type UploadMethod = "POST" | "PUT";
 
+/** Base64-encode an ArrayBuffer in both Node and browser runtimes. */
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const nodeBuffer = (
+    globalThis as { Buffer?: { from(input: ArrayBuffer): { toString(encoding: string): string } } }
+  ).Buffer;
+  if (nodeBuffer) {
+    return nodeBuffer.from(buffer).toString("base64");
+  }
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 export async function getSystemInfo(client: JellyfinClient): Promise<JellyfinSystemInfo> {
   return client.fetch<JellyfinSystemInfo>("/System/Info");
 }
@@ -143,24 +159,35 @@ export async function uploadUserPrimaryImage(
   const uploadMethods: UploadMethod[] = ["POST"];
   const attemptErrors: string[] = [];
 
+  // Jellyfin's image endpoints have historically expected the body to be
+  // base64-encoded (the official web client base64s before POSTing), but some
+  // versions accept raw bytes. Try base64 first, then fall back to raw, so a
+  // single call works across server versions.
+  const bodies: Array<{ label: string; body: BodyInit }> = [
+    { label: "base64", body: arrayBufferToBase64(imageBuffer) },
+    { label: "raw", body: imageBuffer },
+  ];
+
   for (const method of uploadMethods) {
-    for (const path of uploadPaths) {
-      const response = await client.fetchRaw(path, {
-        method,
-        headers: {
-          "Content-Type": normalizedContentType,
-          Accept: "*/*",
-        },
-        body: imageBuffer,
-      });
+    for (const { label, body } of bodies) {
+      for (const path of uploadPaths) {
+        const response = await client.fetchRaw(path, {
+          method,
+          headers: {
+            "Content-Type": normalizedContentType,
+            Accept: "*/*",
+          },
+          body,
+        });
 
-      if (response.ok) {
-        return;
+        if (response.ok) {
+          return;
+        }
+
+        const errorBody = (await response.text()).trim();
+        const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+        attemptErrors.push(`${method} ${path} [${label}] -> ${response.status}${bodySnippet}`);
       }
-
-      const errorBody = (await response.text()).trim();
-      const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
-      attemptErrors.push(`${method} ${path} -> ${response.status}${bodySnippet}`);
     }
   }
 
@@ -171,6 +198,19 @@ export async function uploadUserPrimaryImage(
   throw new Error(
     `Jellyfin user image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
   );
+}
+
+export async function deleteUserPrimaryImage(
+  client: JellyfinClient,
+  userId: string,
+): Promise<void> {
+  const res = await client.fetchRaw(`/Users/${encodeURIComponent(userId)}/Images/Primary`, {
+    method: "DELETE",
+  });
+  // 404 means there was no image to remove — treat as success (idempotent).
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Delete user image: ${res.status}`);
+  }
 }
 
 export async function getVirtualFolders(client: JellyfinClient): Promise<JellyfinVirtualFolder[]> {

@@ -198,8 +198,17 @@ export async function getLibraryItems(
 
 export async function getWatchHistory(
   client: JellyfinClient,
-  { limit = 24, startIndex = 0 }: { limit?: number; startIndex?: number } = {},
+  {
+    limit = 24,
+    startIndex = 0,
+    includePeople = false,
+  }: { limit?: number; startIndex?: number; includePeople?: boolean } = {},
 ): Promise<JellyfinResponse<JellyfinItem>> {
+  // People is only requested when a caller needs the cast (e.g. building an
+  // avatar picker from watched titles) — it noticeably enlarges the payload.
+  const fields = includePeople
+    ? "Overview,GenreItems,UserData,People"
+    : "Overview,GenreItems,UserData";
   return client.fetch<JellyfinResponse<JellyfinItem>>(`/Users/${client.config.userId}/Items`, {
     Filters: "IsPlayed",
     SortBy: "DatePlayed",
@@ -208,7 +217,7 @@ export async function getWatchHistory(
     IncludeItemTypes: "Movie,Series",
     Limit: String(limit),
     StartIndex: String(startIndex),
-    Fields: "Overview,GenreItems,UserData",
+    Fields: fields,
   });
 }
 
