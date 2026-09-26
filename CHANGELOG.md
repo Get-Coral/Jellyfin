@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/Get-Coral/Jellyfin/compare/v1.9.1...v1.10.0) (2026-09-26)
+
+
+### Features
+
+* expose an item's on-disk path ([6fbdfa2](https://github.com/Get-Coral/Jellyfin/commit/6fbdfa2bac3cdd79c6c9b87b69c2e0f50e404402))
+* expose an item's on-disk path ([81bd70f](https://github.com/Get-Coral/Jellyfin/commit/81bd70fa6a76ba21dad688f418ae1ae9d8eb1966))
+
+
+### Bug Fixes
+
+* make the dependency propagation automation actually work ([83d3f01](https://github.com/Get-Coral/Jellyfin/commit/83d3f01a639b592179f6bd0c525f8812e8750ec5))
+
 ## [1.9.1](https://github.com/Get-Coral/Jellyfin/compare/v1.9.0...v1.9.1) (2026-09-26)
 
 
