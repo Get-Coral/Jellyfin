@@ -80,88 +80,11 @@ jobs:
         # that actions/setup-node writes only landed in pnpm 11.1.3.
         run: npm publish --access public --provenance
 
-  open-upgrade-prs:
-    name: Open dependency upgrade PRs
+  propagate:
+    name: Propagate dependency bump
     needs: [release-please, publish]
     if: needs.release-please.outputs.release_created
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        repo:
-          - Get-Coral/aurora
-          - Get-Coral/KAPOW
-          - Get-Coral/librarian
-          - Get-Coral/fathom
-          - Get-Coral/template
-          - Get-Coral/marquee
-          - Get-Coral/encore
-    steps:
-      # Mints a token that expires in an hour, scoped to the app's installation.
-      # Replaces the long-lived CORAL_AUTOMATION_TOKEN PAT, which had to be
-      # rotated by hand every time it expired.
-      - name: Mint GitHub App token
-        id: app-token
-        continue-on-error: true
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.CORAL_AUTOMATION_APP_ID }}
-          private-key: ${{ secrets.CORAL_AUTOMATION_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-
-      - name: Check automation token
-        id: token-check
-        run: |
-          if [ -n "${{ steps.app-token.outputs.token }}" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Skip notice when token is unavailable
-        if: steps.token-check.outputs.available != 'true'
-        run: echo "Skipping dependency upgrade PR for ${{ matrix.repo }} because the Coral automation GitHub App is not configured."
-
-      - name: Check out dependent repo
-        if: steps.token-check.outputs.available == 'true'
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ matrix.repo }}
-          ref: main
-          token: ${{ steps.app-token.outputs.token }}
-          path: repo
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.32.1
-        if: steps.token-check.outputs.available == 'true'
-
-      - uses: actions/setup-node@v4
-        if: steps.token-check.outputs.available == 'true'
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: repo/pnpm-lock.yaml
-
-      - name: Update Jellyfin dependency
-        if: steps.token-check.outputs.available == 'true'
-        working-directory: repo
-        env:
-          JELLYFIN_VERSION: ${{ needs.publish.outputs.published_version }}
-        run: |
-          pnpm add @get-coral/jellyfin@^${JELLYFIN_VERSION}
-
-      - name: Create pull request
-        if: steps.token-check.outputs.available == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          path: repo
-          commit-message: "chore: bump @get-coral/jellyfin to ^${{ needs.publish.outputs.published_version }}"
-          branch: "automation/jellyfin-v${{ needs.publish.outputs.published_version }}"
-          delete-branch: true
-          title: "chore: bump @get-coral/jellyfin to ^${{ needs.publish.outputs.published_version }}"
-          body: |
-            This PR was opened automatically after releasing `@get-coral/jellyfin@${{ needs.publish.outputs.published_version }}`.
-
-            It updates the shared Jellyfin client dependency and refreshes the pnpm lockfile.
+    uses: ./.github/workflows/propagate-dependency.yml
+    with:
+      version: ${{ needs.publish.outputs.published_version }}
+    secrets: inherit
