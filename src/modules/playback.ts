@@ -6,6 +6,7 @@ import type {
 } from "../types/index.js";
 import type { JellyfinClient, PlaybackAuth } from "./client.js";
 import { setPlayed } from "./items.js";
+import { describeRemotePlaybackSupport } from "./remote-playback.js";
 import { streamUrl, subtitleUrl, transcodeUrl } from "./urls.js";
 
 const SAFE_HLS_MAX_STREAMING_BITRATE = 8_000_000;
@@ -68,6 +69,8 @@ export async function createPlaybackSession(
       canSyncProgress: false,
       playMethod: "DirectPlay",
       subtitleTracks: [],
+      // No PlaybackInfo, so no container or codec metadata to judge by.
+      remotePlayback: describeRemotePlaybackSupport("DirectPlay", undefined),
     };
   }
 
@@ -139,6 +142,7 @@ export async function createPlaybackSession(
     canSyncProgress: Boolean(playSessionId),
     playMethod,
     subtitleTracks,
+    remotePlayback: describeRemotePlaybackSupport(playMethod, mediaSource),
     ...(playSessionId !== undefined && { playSessionId }),
     ...(mediaSourceId !== undefined && { mediaSourceId }),
     ...(sessionId !== undefined && { sessionId }),

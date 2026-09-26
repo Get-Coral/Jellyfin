@@ -287,6 +287,18 @@ export interface SubtitleTrack {
   url: string;
 }
 
+/**
+ * Why a TV can't play a stream, when it can't. `unknown` means the server gave
+ * us no container or codec metadata to judge by.
+ */
+export interface RemotePlaybackSupport {
+  safe: boolean;
+  blockedBy?: {
+    kind: "container" | "videoCodec" | "audioCodec" | "unknown";
+    value: string;
+  };
+}
+
 export interface JellyfinPlaybackSession {
   streamUrl: string;
   canSyncProgress: boolean;
@@ -295,6 +307,11 @@ export interface JellyfinPlaybackSession {
   mediaSourceId?: string;
   sessionId?: string;
   subtitleTracks: SubtitleTrack[];
+  /**
+   * Whether an AirPlay or Cast receiver can decode this stream. A receiver
+   * fetches the URL itself, so browser support says nothing about it.
+   */
+  remotePlayback: RemotePlaybackSupport;
 }
 
 export interface PlaybackSyncInput {
