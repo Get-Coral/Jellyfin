@@ -54,10 +54,9 @@ export async function updateUserPolicy(
   policy: JellyfinUserPolicy,
 ): Promise<void> {
   const url = new URL(`${client.config.url}/Users/${userId}/Policy`);
-  url.searchParams.set("api_key", client.config.apiKey);
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...client.authHeaders() },
     body: JSON.stringify(policy),
   });
   if (!res.ok) throw new Error(`Update user policy: ${res.status}`);
@@ -92,10 +91,9 @@ export async function createUser(
   password: string,
 ): Promise<JellyfinUser> {
   const url = new URL(`${client.config.url}/Users/New`);
-  url.searchParams.set("api_key", client.config.apiKey);
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...client.authHeaders() },
     body: JSON.stringify({ Name: name, Password: password }),
   });
   if (!res.ok) throw new Error(`Create user: ${res.status}`);
@@ -219,14 +217,12 @@ export async function getVirtualFolders(client: JellyfinClient): Promise<Jellyfi
 
 export async function scanAllLibraries(client: JellyfinClient): Promise<void> {
   const url = new URL(`${client.config.url}/Library/Refresh`);
-  url.searchParams.set("api_key", client.config.apiKey);
-  const res = await fetch(url.toString(), { method: "POST" });
+  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
   if (!res.ok) throw new Error(`Scan libraries: ${res.status}`);
 }
 
 export async function scanLibrary(client: JellyfinClient, itemId: string): Promise<void> {
   const url = new URL(`${client.config.url}/Items/${itemId}/Refresh`);
-  url.searchParams.set("api_key", client.config.apiKey);
-  const res = await fetch(url.toString(), { method: "POST" });
+  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
   if (!res.ok) throw new Error(`Scan library: ${res.status}`);
 }
