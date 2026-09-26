@@ -78,8 +78,7 @@ export async function createPlaybackSession(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Emby-Authorization": client.buildAuthHeader((auth as PlaybackAuth).token),
-      "X-Emby-Token": (auth as PlaybackAuth).token,
+      ...client.authHeaders((auth as PlaybackAuth).token),
     },
     body: JSON.stringify({
       UserId: client.config.userId,

@@ -286,10 +286,9 @@ export async function updateItem(
         : patch.productionYear;
   const nextGenres = patch.genres ?? item.GenreItems?.map((genre) => genre.Name) ?? [];
   const url = new URL(`${client.config.url}/Items/${id}`);
-  url.searchParams.set("api_key", client.config.apiKey);
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...client.authHeaders() },
     body: JSON.stringify({
       ...item,
       Name: patch.name ?? item.Name,
@@ -515,7 +514,6 @@ export async function downloadRemoteImage(
   type: ImageType = "Primary",
 ): Promise<void> {
   const queryUrl = new URL(`/Items/${itemId}/RemoteImages/Download`, client.config.url);
-  queryUrl.searchParams.set("api_key", client.config.apiKey);
   queryUrl.searchParams.set("type", type);
   queryUrl.searchParams.set("imageUrl", imageUrl);
 
@@ -657,9 +655,7 @@ async function buildUploadAuthStrategies(client: JellyfinClient): Promise<Upload
           ...init,
           headers: {
             ...init.headers,
-            "X-Emby-Authorization": client.buildAuthHeader(playbackToken),
-            "X-Emby-Token": playbackToken,
-            Authorization: `MediaBrowser Token="${playbackToken}"`,
+            ...client.authHeaders(playbackToken),
           },
         }),
     });

@@ -73,10 +73,9 @@ export async function createCollection(
   itemIds: string[] = [],
 ): Promise<{ Id: string }> {
   const url = new URL(`${client.config.url}/Collections`);
-  url.searchParams.set("api_key", client.config.apiKey);
   url.searchParams.set("Name", name);
   if (itemIds.length > 0) url.searchParams.set("Ids", itemIds.join(","));
-  const res = await fetch(url.toString(), { method: "POST" });
+  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
   if (!res.ok) throw new Error(`Create collection error: ${res.status}`);
   return res.json() as Promise<{ Id: string }>;
 }
@@ -87,9 +86,8 @@ export async function addItemsToCollection(
   itemIds: string[],
 ): Promise<void> {
   const url = new URL(`${client.config.url}/Collections/${collectionId}/Items`);
-  url.searchParams.set("api_key", client.config.apiKey);
   url.searchParams.set("Ids", itemIds.join(","));
-  const res = await fetch(url.toString(), { method: "POST" });
+  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
   if (!res.ok) throw new Error(`Add to collection error: ${res.status}`);
 }
 
@@ -99,8 +97,7 @@ export async function removeItemsFromCollection(
   itemIds: string[],
 ): Promise<void> {
   const url = new URL(`${client.config.url}/Collections/${collectionId}/Items`);
-  url.searchParams.set("api_key", client.config.apiKey);
   url.searchParams.set("Ids", itemIds.join(","));
-  const res = await fetch(url.toString(), { method: "DELETE" });
+  const res = await fetch(url.toString(), { method: "DELETE", headers: client.authHeaders() });
   if (!res.ok) throw new Error(`Remove from collection error: ${res.status}`);
 }

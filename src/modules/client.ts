@@ -40,13 +40,12 @@ export class JellyfinClient {
 
   async fetch<T>(path: string, params?: Record<string, string>): Promise<T> {
     const url = new URL(`${this.config.url}${path}`);
-    url.searchParams.set("api_key", this.config.apiKey);
     if (params) {
       for (const [k, v] of Object.entries(params)) {
         url.searchParams.set(k, v);
       }
     }
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { headers: this.authHeaders() });
     if (!res.ok) {
       throw new JellyfinError(
         `Jellyfin API error on ${path}: ${res.status} ${res.statusText}`,
@@ -58,8 +57,10 @@ export class JellyfinClient {
 
   async fetchRaw(path: string, init?: RequestInit): Promise<Response> {
     const url = new URL(`${this.config.url}${path}`);
-    url.searchParams.set("api_key", this.config.apiKey);
-    return fetch(url.toString(), init);
+    return fetch(url.toString(), {
+      ...init,
+      headers: { ...this.authHeaders(), ...init?.headers },
+    });
   }
 
   buildAuthHeader(token?: string): string {
@@ -71,6 +72,21 @@ export class JellyfinClient {
     ];
     if (token) parts.push(`Token="${token}"`);
     return `MediaBrowser ${parts.join(", ")}`;
+  }
+
+  /**
+   * Auth headers for the JSON API.
+   *
+   * Jellyfin 12 removed the `api_key` query parameter, the `X-Emby-Token`
+   * header and the `X-Emby-Authorization` header. The standard `Authorization`
+   * header is the only form accepted by both 10.x and 12.x, so it is what we
+   * send everywhere.
+   *
+   * Media and image URLs are unaffected and keep using `api_key`, because a
+   * header cannot be attached to an `<img src>` or a video element source.
+   */
+  authHeaders(token?: string): Record<string, string> {
+    return { Authorization: this.buildAuthHeader(token ?? this.config.apiKey) };
   }
 
   #playbackCacheKey(): string {
@@ -96,7 +112,7 @@ export class JellyfinClient {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Emby-Authorization": this.buildAuthHeader(),
+        Authorization: this.buildAuthHeader(),
       },
       body: JSON.stringify({
         Username: this.config.username,
@@ -139,8 +155,7 @@ export class JellyfinClient {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Emby-Authorization": this.buildAuthHeader(auth.token),
-        "X-Emby-Token": auth.token,
+        Authorization: this.buildAuthHeader(auth.token),
       },
       body: JSON.stringify(payload),
     });
@@ -181,7 +196,7 @@ export async function authenticateUserByName(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Emby-Authorization": client.buildAuthHeader(),
+      Authorization: client.buildAuthHeader(),
     },
     body: JSON.stringify({ Username: username, Pw: password }),
   });
@@ -217,8 +232,7 @@ export async function logoutUserSession(
   const res = await fetch(`${client.config.url}/Sessions/Logout`, {
     method: "POST",
     headers: {
-      "X-Emby-Authorization": client.buildAuthHeader(accessToken),
-      "X-Emby-Token": accessToken,
+      Authorization: client.buildAuthHeader(accessToken),
     },
   });
 
