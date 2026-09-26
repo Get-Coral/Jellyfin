@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.11.0](https://github.com/Get-Coral/Jellyfin/compare/v1.10.0...v1.11.0) (2026-09-26)
+
+
+### Features
+
+* report whether a stream can play on an AirPlay or Cast receiver ([6d10f5e](https://github.com/Get-Coral/Jellyfin/commit/6d10f5e2bc2db81635c9a692f0743ff4c61e15b2))
+* report whether a stream can play on an AirPlay or Cast receiver ([cdeefb2](https://github.com/Get-Coral/Jellyfin/commit/cdeefb22d47971869901ceca6666c597cbefe938))
+
+
+### Bug Fixes
+
+* wait for the registry before propagating a version ([e70a029](https://github.com/Get-Coral/Jellyfin/commit/e70a029dbf4628797fbee2cd2f614d1a6b153647))
+* wait for the registry before propagating a version ([b399e05](https://github.com/Get-Coral/Jellyfin/commit/b399e0506360c75705fc2ac916fc01f62f7dbf05))
+
 ## [1.10.0](https://github.com/Get-Coral/Jellyfin/compare/v1.9.1...v1.10.0) (2026-09-26)
 
 
