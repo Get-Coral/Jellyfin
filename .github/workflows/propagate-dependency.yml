@@ -88,6 +88,29 @@ jobs:
           cache: pnpm
           cache-dependency-path: repo/pnpm-lock.yaml
 
+      # npm's read path is not immediately consistent after a publish, and this
+      # workflow is called the moment the release job finishes. Seven of eight
+      # matrix legs failed on 1.10.0 with ERR_PNPM_NO_MATCHING_VERSION while the
+      # registry still advertised 1.9.1; the eighth passed only because it
+      # happened to start a few seconds later.
+      - name: Wait for the registry to serve the new version
+        if: steps.dep.outputs.present == 'true'
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            resolved=$(npm view "@get-coral/jellyfin@${VERSION}" version 2>/dev/null || true)
+            if [ "$resolved" = "$VERSION" ]; then
+              echo "Registry is serving ${VERSION} after ${attempt} attempt(s)."
+              exit 0
+            fi
+            echo "Attempt ${attempt}: registry does not have ${VERSION} yet."
+            sleep 10
+          done
+          echo "::error::@get-coral/jellyfin@${VERSION} never appeared on the registry."
+          exit 1
+
       - name: Update the dependency
         if: steps.dep.outputs.present == 'true'
         working-directory: repo
