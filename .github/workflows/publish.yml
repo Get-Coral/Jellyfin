@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # required for npm trusted publishing (OIDC)
 
 jobs:
   publish:
@@ -36,6 +37,8 @@ jobs:
         run: pnpm build
 
       - name: Publish
-        run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Trusted publishing (OIDC): npm exchanges the workflow's OIDC token for
+        # a short-lived registry token, so no NPM_TOKEN is needed. Uses npm
+        # rather than pnpm because the pnpm fixes for OIDC alongside the .npmrc
+        # that actions/setup-node writes only landed in pnpm 11.1.3.
+        run: npm publish --access public --provenance
