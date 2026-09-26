@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.9.1](https://github.com/Get-Coral/Jellyfin/compare/v1.9.0...v1.9.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* pin pnpm explicitly so release-please cannot break the build ([514728e](https://github.com/Get-Coral/Jellyfin/commit/514728eb43c72b157764c72eab6ca16885ec71ce))
+* pin pnpm explicitly so release-please cannot break the build ([eeeffcb](https://github.com/Get-Coral/Jellyfin/commit/eeeffcbb3f3207267815db6948f2564b86f7895d))
+* use Authorization header for the JSON API (Jellyfin 12 support) ([6795dad](https://github.com/Get-Coral/Jellyfin/commit/6795dadd2e329b2ee1ae07abc35977b4e171583c))
+* use Authorization header for the JSON API (Jellyfin 12 support) ([4cb3308](https://github.com/Get-Coral/Jellyfin/commit/4cb3308957778990906e62fbc0747fd1feb6d3c7))
+
 ## [1.9.0](https://github.com/Get-Coral/Jellyfin/compare/v1.8.0...v1.9.0) (2026-07-12)
 
 
