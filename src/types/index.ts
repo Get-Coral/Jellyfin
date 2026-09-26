@@ -23,6 +23,12 @@ export interface JellyfinItem {
   Id: string;
   Name: string;
   Type: JellyfinMediaType;
+  /**
+   * Absolute path to the item on the Jellyfin server's filesystem, in that
+   * server's namespace. Only returned when `Path` is requested via `Fields`
+   * and the caller has permission to see it, so treat it as optional.
+   */
+  Path?: string;
   Genres?: string[];
   ProductionYear?: number;
   RunTimeTicks?: number;
@@ -108,6 +114,8 @@ export interface JellyfinMediaStream {
 
 export interface JellyfinMediaSource {
   Id?: string | null;
+  /** On-disk path of this specific source, in the Jellyfin server's namespace. */
+  Path?: string;
   MediaStreams?: JellyfinMediaStream[];
   SupportsDirectPlay?: boolean;
   SupportsDirectStream?: boolean;
@@ -313,4 +321,10 @@ export interface GetLibraryItemsOptions {
   minCommunityRating?: number;
   minPremiereDate?: string;
   maxPremiereDate?: string;
+  /**
+   * Ask Jellyfin for each item's on-disk `Path`. Off by default because it is
+   * only useful to callers that manage files, and it is not returned to
+   * unprivileged users.
+   */
+  includePath?: boolean;
 }

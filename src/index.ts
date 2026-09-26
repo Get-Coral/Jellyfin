@@ -51,6 +51,7 @@ export {
   getFavoriteItems,
   getFeaturedItem,
   getItem,
+  getItemPath,
   getLatestMedia,
   getLibraryItems,
   getMostPlayed,

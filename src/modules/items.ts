@@ -45,8 +45,21 @@ interface GoogleBooksResponse {
 
 export async function getItem(client: JellyfinClient, itemId: string): Promise<JellyfinItem> {
   return client.fetch<JellyfinItem>(`/Users/${client.config.userId}/Items/${itemId}`, {
-    Fields: "Overview,GenreItems,UserData,People,Studios",
+    Fields: "Overview,GenreItems,UserData,People,Studios,Path",
   });
+}
+
+/**
+ * The on-disk path of an item, in the Jellyfin server's own namespace.
+ *
+ * Returns `null` when Jellyfin withholds it, which it does for callers without
+ * permission to see server paths. Anything acting on the result still has to
+ * translate that path into its own namespace — a module in a different
+ * container mounts the same directory somewhere else.
+ */
+export async function getItemPath(client: JellyfinClient, itemId: string): Promise<string | null> {
+  const item = await getItem(client, itemId);
+  return item.Path ?? null;
 }
 
 export async function searchItems(
@@ -165,6 +178,7 @@ export async function getLibraryItems(
     minCommunityRating,
     minPremiereDate,
     maxPremiereDate,
+    includePath = false,
   } = options;
 
   const params: Record<string, string> = {
@@ -174,7 +188,7 @@ export async function getLibraryItems(
     Recursive: "true",
     Limit: String(limit),
     StartIndex: String(startIndex),
-    Fields: "Overview,GenreItems,UserData",
+    Fields: includePath ? "Overview,GenreItems,UserData,Path" : "Overview,GenreItems,UserData",
   };
 
   const filterParts: string[] = [];
