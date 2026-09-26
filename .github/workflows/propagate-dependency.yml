@@ -1,0 +1,109 @@
+name: Propagate dependency bump
+
+# Opens a PR in every Coral module that depends on @get-coral/jellyfin, moving
+# it to a newly published version.
+#
+# Runs two ways:
+#   - workflow_call, from release-please once a release has been published
+#   - workflow_dispatch, to propagate a version by hand (e.g. when a release
+#     went out while this automation was broken)
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: Version to propagate, without a leading v
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to propagate, without a leading v (e.g. 1.9.1)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  open-upgrade-prs:
+    name: ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - aurora
+          - tide
+          - librarian
+          - fathom
+          - template
+          - marquee
+          - encore
+          - KAPOW
+    steps:
+      # Mints a token that expires in an hour, scoped to the app's installation.
+      # Deliberately not guarded: if the app is misconfigured this job fails
+      # loudly. The previous version checked only that a PAT secret was
+      # non-empty, so an *expired* PAT sailed through the check and then failed
+      # much later with "could not read Username for https://github.com".
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.CORAL_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.CORAL_AUTOMATION_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Check out ${{ matrix.repo }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/${{ matrix.repo }}
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+          path: repo
+
+      # Not every module uses the client. `pnpm add` would happily *introduce*
+      # the dependency where it was never wanted, so check before touching it.
+      - name: Does this module use the client?
+        id: dep
+        working-directory: repo
+        run: |
+          if node -e "const p=require('./package.json');const d={...p.dependencies,...p.devDependencies};process.exit(d['@get-coral/jellyfin']?0:1)"; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::${{ matrix.repo }} does not depend on @get-coral/jellyfin — nothing to do."
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.dep.outputs.present == 'true'
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        if: steps.dep.outputs.present == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: repo/pnpm-lock.yaml
+
+      - name: Update the dependency
+        if: steps.dep.outputs.present == 'true'
+        working-directory: repo
+        run: pnpm add "@get-coral/jellyfin@^${{ inputs.version }}"
+
+      - name: Open pull request
+        if: steps.dep.outputs.present == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          path: repo
+          commit-message: "chore: bump @get-coral/jellyfin to ^${{ inputs.version }}"
+          branch: "automation/jellyfin-v${{ inputs.version }}"
+          delete-branch: true
+          title: "chore: bump @get-coral/jellyfin to ^${{ inputs.version }}"
+          body: |
+            Opened automatically after `@get-coral/jellyfin@${{ inputs.version }}` was published.
+
+            Updates the shared Jellyfin client dependency and refreshes the pnpm lockfile.
