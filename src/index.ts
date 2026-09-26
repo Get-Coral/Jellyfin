@@ -76,6 +76,8 @@ export {
   getMetadataGapReasons,
   metadataGapReasonForKey,
 } from "./modules/quality.js";
+// ── Remote playback ───────────────────────────────────────────────────────────
+export { describeRemotePlaybackSupport } from "./modules/remote-playback.js";
 // ── Shows ─────────────────────────────────────────────────────────────────────
 export { getEpisodesForSeries, getNextUpForSeries } from "./modules/shows.js";
 // ── URL builders ──────────────────────────────────────────────────────────────
@@ -110,6 +112,7 @@ export type {
   MediaType,
   PlaybackSyncInput,
   PlayMethod,
+  RemotePlaybackSupport,
   SortOrder,
   SubtitleTrack,
   WatchStatus,
