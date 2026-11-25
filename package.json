@@ -1,65 +1,75 @@
 {
-  "name": "@get-coral/jellyfin",
-  "packageManager": "pnpm@10.32.1",
-  "version": "1.11.0",
-  "description": "TypeScript client for the Jellyfin API — part of the Coral ecosystem",
-  "license": "MIT",
-  "author": "ElianCodes <hello@elian.codes>",
-  "homepage": "https://getcoral.dev",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Get-Coral/jellyfin.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Get-Coral/jellyfin/issues"
-  },
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/types/index.js",
-      "require": "./dist/types/index.cjs"
-    }
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "lint": "biome lint . --write",
-    "format": "biome format . --write",
-    "check": "biome check .",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.9",
-    "@get-coral/biome-config": "^0.2.0",
-    "@get-coral/tsconfig": "^0.2.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.7.3",
-    "vitest": "^5.0.2"
-  },
-  "keywords": [
-    "jellyfin",
-    "coral",
-    "self-hosted",
-    "media-server",
-    "api-client"
-  ],
-  "engines": {
-    "node": ">=18"
-  }
+	"name": "@get-coral/jellyfin",
+	"version": "1.11.0",
+	"description": "TypeScript client for the Jellyfin API — part of the Coral ecosystem",
+	"keywords": [
+		"api-client",
+		"coral",
+		"jellyfin",
+		"media-server",
+		"self-hosted"
+	],
+	"homepage": "https://getcoral.dev",
+	"bugs": {
+		"url": "https://github.com/Get-Coral/jellyfin/issues"
+	},
+	"license": "MIT",
+	"author": "ElianCodes <hello@elian.codes>",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Get-Coral/jellyfin.git"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		},
+		"./types": {
+			"import": {
+				"types": "./dist/types/index.d.ts",
+				"default": "./dist/types/index.js"
+			},
+			"require": {
+				"types": "./dist/types/index.d.cts",
+				"default": "./dist/types/index.cjs"
+			}
+		}
+	},
+	"scripts": {
+		"build": "vp pack",
+		"dev": "vp pack --watch",
+		"lint": "vp lint --fix",
+		"format": "vp fmt",
+		"check": "vp check",
+		"test": "vp test run",
+		"typecheck": "tsc --noEmit",
+		"prepublishOnly": "pnpm build"
+	},
+	"devDependencies": {
+		"@get-coral/oxfmt-config": "^0.1.0",
+		"@get-coral/oxlint-config": "^0.1.0",
+		"@get-coral/tsconfig": "^0.2.0",
+		"publint": "^0.3.25",
+		"typescript": "^5.7.3",
+		"vite-plus": "catalog:"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "pnpm@10.32.1"
 }

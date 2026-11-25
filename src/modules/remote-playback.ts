@@ -22,7 +22,7 @@ const REMOTE_SAFE_VIDEO_CODECS = ["h264", "avc", "avc1"];
 const REMOTE_SAFE_AUDIO_CODECS = ["aac", "mp3", "mp4a"];
 
 function normalize(value: string | undefined | null): string {
-  return (value ?? "").trim().toLowerCase();
+	return (value ?? "").trim().toLowerCase();
 }
 
 /**
@@ -31,15 +31,15 @@ function normalize(value: string | undefined | null): string {
  * safe when every candidate is.
  */
 function splitContainers(container: string | undefined | null): string[] {
-  return normalize(container)
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
+	return normalize(container)
+		.split(",")
+		.map((part) => part.trim())
+		.filter(Boolean);
 }
 
 function firstStreamCodec(source: JellyfinMediaSource, type: string): string {
-  const stream = source.MediaStreams?.find((candidate) => normalize(candidate.Type) === type);
-  return normalize(stream?.Codec);
+	const stream = source.MediaStreams?.find((candidate) => normalize(candidate.Type) === type);
+	return normalize(stream?.Codec);
 }
 
 /**
@@ -50,37 +50,37 @@ function firstStreamCodec(source: JellyfinMediaSource, type: string): string {
  * direct play needs inspecting, because then the file goes to the TV as-is.
  */
 export function describeRemotePlaybackSupport(
-  playMethod: PlayMethod,
-  mediaSource: JellyfinMediaSource | undefined,
+	playMethod: PlayMethod,
+	mediaSource: JellyfinMediaSource | undefined,
 ): RemotePlaybackSupport {
-  if (playMethod === "Transcode") return { safe: true };
+	if (playMethod === "Transcode") return { safe: true };
 
-  if (!mediaSource) {
-    // No metadata to judge by. Claim unsupported rather than promise a TV
-    // something it may not deliver — a hidden button beats a black screen.
-    return { safe: false, blockedBy: { kind: "unknown", value: "" } };
-  }
+	if (!mediaSource) {
+		// No metadata to judge by. Claim unsupported rather than promise a TV
+		// something it may not deliver — a hidden button beats a black screen.
+		return { safe: false, blockedBy: { kind: "unknown", value: "" } };
+	}
 
-  const containers = splitContainers(mediaSource.Container);
-  const unsafeContainer = containers.find(
-    (container) => !REMOTE_SAFE_CONTAINERS.includes(container),
-  );
-  if (containers.length === 0) {
-    return { safe: false, blockedBy: { kind: "unknown", value: "" } };
-  }
-  if (unsafeContainer) {
-    return { safe: false, blockedBy: { kind: "container", value: unsafeContainer } };
-  }
+	const containers = splitContainers(mediaSource.Container);
+	const unsafeContainer = containers.find(
+		(container) => !REMOTE_SAFE_CONTAINERS.includes(container),
+	);
+	if (containers.length === 0) {
+		return { safe: false, blockedBy: { kind: "unknown", value: "" } };
+	}
+	if (unsafeContainer) {
+		return { safe: false, blockedBy: { kind: "container", value: unsafeContainer } };
+	}
 
-  const videoCodec = firstStreamCodec(mediaSource, "video");
-  if (videoCodec && !REMOTE_SAFE_VIDEO_CODECS.includes(videoCodec)) {
-    return { safe: false, blockedBy: { kind: "videoCodec", value: videoCodec } };
-  }
+	const videoCodec = firstStreamCodec(mediaSource, "video");
+	if (videoCodec && !REMOTE_SAFE_VIDEO_CODECS.includes(videoCodec)) {
+		return { safe: false, blockedBy: { kind: "videoCodec", value: videoCodec } };
+	}
 
-  const audioCodec = firstStreamCodec(mediaSource, "audio");
-  if (audioCodec && !REMOTE_SAFE_AUDIO_CODECS.includes(audioCodec)) {
-    return { safe: false, blockedBy: { kind: "audioCodec", value: audioCodec } };
-  }
+	const audioCodec = firstStreamCodec(mediaSource, "audio");
+	if (audioCodec && !REMOTE_SAFE_AUDIO_CODECS.includes(audioCodec)) {
+		return { safe: false, blockedBy: { kind: "audioCodec", value: audioCodec } };
+	}
 
-  return { safe: true };
+	return { safe: true };
 }
