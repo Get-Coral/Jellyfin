@@ -1,52 +1,52 @@
 import type {
-  GetLibraryItemsOptions,
-  ImageType,
-  JellyfinItem,
-  JellyfinItemUpdate,
-  JellyfinMediaType,
-  JellyfinRemoteImageInfo,
-  JellyfinRemoteImageResult,
-  JellyfinResponse,
+	GetLibraryItemsOptions,
+	ImageType,
+	JellyfinItem,
+	JellyfinItemUpdate,
+	JellyfinMediaType,
+	JellyfinRemoteImageInfo,
+	JellyfinRemoteImageResult,
+	JellyfinResponse,
 } from "../types/index.js";
 import type { JellyfinClient } from "./client.js";
 
 export interface JellyfinCoverCandidate {
-  url: string;
-  thumbnailUrl: string;
-  providerName: string;
-  width?: number;
-  height?: number;
-  communityRating?: number;
-  voteCount?: number;
+	url: string;
+	thumbnailUrl: string;
+	providerName: string;
+	width?: number;
+	height?: number;
+	communityRating?: number;
+	voteCount?: number;
 }
 
 interface OpenLibrarySearchResponse {
-  docs?: Array<{
-    cover_i?: number;
-    cover_edition_key?: string;
-    isbn?: string[];
-  }>;
+	docs?: Array<{
+		cover_i?: number;
+		cover_edition_key?: string;
+		isbn?: string[];
+	}>;
 }
 
 interface GoogleBooksResponse {
-  items?: Array<{
-    volumeInfo?: {
-      imageLinks?: {
-        extraLarge?: string;
-        large?: string;
-        medium?: string;
-        small?: string;
-        thumbnail?: string;
-        smallThumbnail?: string;
-      };
-    };
-  }>;
+	items?: Array<{
+		volumeInfo?: {
+			imageLinks?: {
+				extraLarge?: string;
+				large?: string;
+				medium?: string;
+				small?: string;
+				thumbnail?: string;
+				smallThumbnail?: string;
+			};
+		};
+	}>;
 }
 
 export async function getItem(client: JellyfinClient, itemId: string): Promise<JellyfinItem> {
-  return client.fetch<JellyfinItem>(`/Users/${client.config.userId}/Items/${itemId}`, {
-    Fields: "Overview,GenreItems,UserData,People,Studios,Path",
-  });
+	return client.fetch<JellyfinItem>(`/Users/${client.config.userId}/Items/${itemId}`, {
+		Fields: "Overview,GenreItems,UserData,People,Studios,Path",
+	});
 }
 
 /**
@@ -58,790 +58,789 @@ export async function getItem(client: JellyfinClient, itemId: string): Promise<J
  * container mounts the same directory somewhere else.
  */
 export async function getItemPath(client: JellyfinClient, itemId: string): Promise<string | null> {
-  const item = await getItem(client, itemId);
-  return item.Path ?? null;
+	const item = await getItem(client, itemId);
+	return item.Path ?? null;
 }
 
 export async function searchItems(
-  client: JellyfinClient,
-  query: string,
-  types: JellyfinMediaType[] = ["Movie", "Series"],
+	client: JellyfinClient,
+	query: string,
+	types: JellyfinMediaType[] = ["Movie", "Series"],
 ): Promise<JellyfinItem[]> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items`,
-    {
-      SearchTerm: query,
-      Recursive: "true",
-      Limit: "20",
-      Fields: "Overview,GenreItems,UserData",
-      IncludeItemTypes: types.join(","),
-    },
-  );
-  return data.Items;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items`,
+		{
+			SearchTerm: query,
+			Recursive: "true",
+			Limit: "20",
+			Fields: "Overview,GenreItems,UserData",
+			IncludeItemTypes: types.join(","),
+		},
+	);
+	return data.Items;
 }
 
 export async function getFeaturedItem(
-  client: JellyfinClient,
-  type: JellyfinMediaType = "Movie",
+	client: JellyfinClient,
+	type: JellyfinMediaType = "Movie",
 ): Promise<JellyfinItem | null> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items`,
-    {
-      IncludeItemTypes: type,
-      SortBy: "Random",
-      Recursive: "true",
-      Limit: "1",
-      HasBackdrop: "true",
-      Fields: "Overview,GenreItems,UserData",
-    },
-  );
-  return data.Items[0] ?? null;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items`,
+		{
+			IncludeItemTypes: type,
+			SortBy: "Random",
+			Recursive: "true",
+			Limit: "1",
+			HasBackdrop: "true",
+			Fields: "Overview,GenreItems,UserData",
+		},
+	);
+	return data.Items[0] ?? null;
 }
 
 export async function getContinueWatching(
-  client: JellyfinClient,
-  limit = 6,
+	client: JellyfinClient,
+	limit = 6,
 ): Promise<JellyfinItem[]> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items/Resume`,
-    { MediaTypes: "Video", Limit: String(limit), Fields: "Overview,GenreItems,UserData" },
-  );
-  return data.Items;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items/Resume`,
+		{ MediaTypes: "Video", Limit: String(limit), Fields: "Overview,GenreItems,UserData" },
+	);
+	return data.Items;
 }
 
 export async function getLatestMedia(
-  client: JellyfinClient,
-  type: JellyfinMediaType = "Movie",
-  limit = 12,
+	client: JellyfinClient,
+	type: JellyfinMediaType = "Movie",
+	limit = 12,
 ): Promise<JellyfinItem[]> {
-  return client.fetch<JellyfinItem[]>(`/Users/${client.config.userId}/Items/Latest`, {
-    IncludeItemTypes: type,
-    Limit: String(limit),
-    Fields: "Overview,GenreItems,UserData",
-  });
+	return client.fetch<JellyfinItem[]>(`/Users/${client.config.userId}/Items/Latest`, {
+		IncludeItemTypes: type,
+		Limit: String(limit),
+		Fields: "Overview,GenreItems,UserData",
+	});
 }
 
 export async function getFavoriteItems(
-  client: JellyfinClient,
-  type: JellyfinMediaType = "Movie",
-  limit = 12,
+	client: JellyfinClient,
+	type: JellyfinMediaType = "Movie",
+	limit = 12,
 ): Promise<JellyfinItem[]> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items`,
-    {
-      IncludeItemTypes: type,
-      Recursive: "true",
-      Filters: "IsFavorite",
-      Limit: String(limit),
-      SortBy: "DateCreated",
-      SortOrder: "Descending",
-      Fields: "Overview,GenreItems,UserData",
-    },
-  );
-  return data.Items;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items`,
+		{
+			IncludeItemTypes: type,
+			Recursive: "true",
+			Filters: "IsFavorite",
+			Limit: String(limit),
+			SortBy: "DateCreated",
+			SortOrder: "Descending",
+			Fields: "Overview,GenreItems,UserData",
+		},
+	);
+	return data.Items;
 }
 
 export async function getMostPlayed(
-  client: JellyfinClient,
-  type: JellyfinMediaType = "Movie",
-  limit = 12,
+	client: JellyfinClient,
+	type: JellyfinMediaType = "Movie",
+	limit = 12,
 ): Promise<JellyfinItem[]> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items`,
-    {
-      IncludeItemTypes: type,
-      SortBy: "PlayCount",
-      SortOrder: "Descending",
-      Recursive: "true",
-      Limit: String(limit),
-      Filters: "IsPlayed",
-      Fields: "Overview,GenreItems,UserData",
-    },
-  );
-  return data.Items;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items`,
+		{
+			IncludeItemTypes: type,
+			SortBy: "PlayCount",
+			SortOrder: "Descending",
+			Recursive: "true",
+			Limit: String(limit),
+			Filters: "IsPlayed",
+			Fields: "Overview,GenreItems,UserData",
+		},
+	);
+	return data.Items;
 }
 
 export async function getLibraryItems(
-  client: JellyfinClient,
-  type: JellyfinMediaType,
-  options: GetLibraryItemsOptions = {},
+	client: JellyfinClient,
+	type: JellyfinMediaType,
+	options: GetLibraryItemsOptions = {},
 ): Promise<JellyfinResponse<JellyfinItem>> {
-  const {
-    sortBy = "SortName",
-    sortOrder = "Ascending",
-    limit = 24,
-    startIndex = 0,
-    genre,
-    filters,
-    watchStatus,
-    officialRatings,
-    minCommunityRating,
-    minPremiereDate,
-    maxPremiereDate,
-    includePath = false,
-  } = options;
+	const {
+		sortBy = "SortName",
+		sortOrder = "Ascending",
+		limit = 24,
+		startIndex = 0,
+		genre,
+		filters,
+		watchStatus,
+		officialRatings,
+		minCommunityRating,
+		minPremiereDate,
+		maxPremiereDate,
+		includePath = false,
+	} = options;
 
-  const params: Record<string, string> = {
-    IncludeItemTypes: type,
-    SortBy: sortBy,
-    SortOrder: sortOrder,
-    Recursive: "true",
-    Limit: String(limit),
-    StartIndex: String(startIndex),
-    Fields: includePath ? "Overview,GenreItems,UserData,Path" : "Overview,GenreItems,UserData",
-  };
+	const params: Record<string, string> = {
+		IncludeItemTypes: type,
+		SortBy: sortBy,
+		SortOrder: sortOrder,
+		Recursive: "true",
+		Limit: String(limit),
+		StartIndex: String(startIndex),
+		Fields: includePath ? "Overview,GenreItems,UserData,Path" : "Overview,GenreItems,UserData",
+	};
 
-  const filterParts: string[] = [];
-  if (filters) filterParts.push(filters);
-  if (watchStatus === "watched") filterParts.push("IsPlayed");
-  else if (watchStatus === "unwatched") filterParts.push("IsUnplayed");
-  else if (watchStatus === "inprogress") filterParts.push("IsResumable");
-  if (filterParts.length > 0) params.Filters = filterParts.join(",");
+	const filterParts: string[] = [];
+	if (filters) filterParts.push(filters);
+	if (watchStatus === "watched") filterParts.push("IsPlayed");
+	else if (watchStatus === "unwatched") filterParts.push("IsUnplayed");
+	else if (watchStatus === "inprogress") filterParts.push("IsResumable");
+	if (filterParts.length > 0) params.Filters = filterParts.join(",");
 
-  if (genre) params.Genres = genre;
-  if (officialRatings) params.OfficialRatings = officialRatings;
-  if (minCommunityRating != null) params.MinCommunityRating = String(minCommunityRating);
-  if (minPremiereDate) params.MinPremiereDate = minPremiereDate;
-  if (maxPremiereDate) params.MaxPremiereDate = maxPremiereDate;
+	if (genre) params.Genres = genre;
+	if (officialRatings) params.OfficialRatings = officialRatings;
+	if (minCommunityRating != null) params.MinCommunityRating = String(minCommunityRating);
+	if (minPremiereDate) params.MinPremiereDate = minPremiereDate;
+	if (maxPremiereDate) params.MaxPremiereDate = maxPremiereDate;
 
-  return client.fetch<JellyfinResponse<JellyfinItem>>(
-    `/Users/${client.config.userId}/Items`,
-    params,
-  );
+	return client.fetch<JellyfinResponse<JellyfinItem>>(
+		`/Users/${client.config.userId}/Items`,
+		params,
+	);
 }
 
 export async function getWatchHistory(
-  client: JellyfinClient,
-  {
-    limit = 24,
-    startIndex = 0,
-    includePeople = false,
-  }: { limit?: number; startIndex?: number; includePeople?: boolean } = {},
+	client: JellyfinClient,
+	{
+		limit = 24,
+		startIndex = 0,
+		includePeople = false,
+	}: { limit?: number; startIndex?: number; includePeople?: boolean } = {},
 ): Promise<JellyfinResponse<JellyfinItem>> {
-  // People is only requested when a caller needs the cast (e.g. building an
-  // avatar picker from watched titles) — it noticeably enlarges the payload.
-  const fields = includePeople
-    ? "Overview,GenreItems,UserData,People"
-    : "Overview,GenreItems,UserData";
-  return client.fetch<JellyfinResponse<JellyfinItem>>(`/Users/${client.config.userId}/Items`, {
-    Filters: "IsPlayed",
-    SortBy: "DatePlayed",
-    SortOrder: "Descending",
-    Recursive: "true",
-    IncludeItemTypes: "Movie,Series",
-    Limit: String(limit),
-    StartIndex: String(startIndex),
-    Fields: fields,
-  });
+	// People is only requested when a caller needs the cast (e.g. building an
+	// avatar picker from watched titles) — it noticeably enlarges the payload.
+	const fields = includePeople
+		? "Overview,GenreItems,UserData,People"
+		: "Overview,GenreItems,UserData";
+	return client.fetch<JellyfinResponse<JellyfinItem>>(`/Users/${client.config.userId}/Items`, {
+		Filters: "IsPlayed",
+		SortBy: "DatePlayed",
+		SortOrder: "Descending",
+		Recursive: "true",
+		IncludeItemTypes: "Movie,Series",
+		Limit: String(limit),
+		StartIndex: String(startIndex),
+		Fields: fields,
+	});
 }
 
 export async function getSimilarItems(
-  client: JellyfinClient,
-  itemId: string,
-  limit = 8,
+	client: JellyfinClient,
+	itemId: string,
+	limit = 8,
 ): Promise<JellyfinItem[]> {
-  const data = await client.fetch<JellyfinResponse<JellyfinItem>>(`/Items/${itemId}/Similar`, {
-    UserId: client.config.userId,
-    Limit: String(limit),
-    Fields: "Overview,GenreItems,UserData",
-  });
-  return data.Items;
+	const data = await client.fetch<JellyfinResponse<JellyfinItem>>(`/Items/${itemId}/Similar`, {
+		UserId: client.config.userId,
+		Limit: String(limit),
+		Fields: "Overview,GenreItems,UserData",
+	});
+	return data.Items;
 }
 
 export async function setFavorite(
-  client: JellyfinClient,
-  itemId: string,
-  isFavorite: boolean,
+	client: JellyfinClient,
+	itemId: string,
+	isFavorite: boolean,
 ): Promise<{ IsFavorite: boolean }> {
-  const res = await client.fetchRaw(`/Users/${client.config.userId}/FavoriteItems/${itemId}`, {
-    method: isFavorite ? "DELETE" : "POST",
-  });
-  if (!res.ok) throw new Error(`Jellyfin favorite error: ${res.status}`);
-  return res.json() as Promise<{ IsFavorite: boolean }>;
+	const res = await client.fetchRaw(`/Users/${client.config.userId}/FavoriteItems/${itemId}`, {
+		method: isFavorite ? "DELETE" : "POST",
+	});
+	if (!res.ok) throw new Error(`Jellyfin favorite error: ${res.status}`);
+	return res.json() as Promise<{ IsFavorite: boolean }>;
 }
 
 export async function setPlayed(
-  client: JellyfinClient,
-  itemId: string,
-  played: boolean,
+	client: JellyfinClient,
+	itemId: string,
+	played: boolean,
 ): Promise<{ Played: boolean; PlaybackPositionTicks?: number }> {
-  const res = await client.fetchRaw(`/Users/${client.config.userId}/PlayedItems/${itemId}`, {
-    method: played ? "POST" : "DELETE",
-  });
-  if (!res.ok) throw new Error(`Jellyfin played-state error: ${res.status}`);
-  return res.json() as Promise<{ Played: boolean; PlaybackPositionTicks?: number }>;
+	const res = await client.fetchRaw(`/Users/${client.config.userId}/PlayedItems/${itemId}`, {
+		method: played ? "POST" : "DELETE",
+	});
+	if (!res.ok) throw new Error(`Jellyfin played-state error: ${res.status}`);
+	return res.json() as Promise<{ Played: boolean; PlaybackPositionTicks?: number }>;
 }
 
 export async function deleteItem(client: JellyfinClient, id: string): Promise<void> {
-  const res = await client.fetchRaw(`/Items/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`Jellyfin delete error: ${res.status}`);
+	const res = await client.fetchRaw(`/Items/${id}`, { method: "DELETE" });
+	if (!res.ok) throw new Error(`Jellyfin delete error: ${res.status}`);
 }
 
 export async function updateItemName(
-  client: JellyfinClient,
-  id: string,
-  name: string,
+	client: JellyfinClient,
+	id: string,
+	name: string,
 ): Promise<void> {
-  await updateItem(client, id, { name });
+	await updateItem(client, id, { name });
 }
 
 export async function updateItem(
-  client: JellyfinClient,
-  id: string,
-  patch: JellyfinItemUpdate,
+	client: JellyfinClient,
+	id: string,
+	patch: JellyfinItemUpdate,
 ): Promise<void> {
-  const item = await getItem(client, id);
-  const nextOverview = patch.overview ?? item.Overview ?? "";
-  const nextProductionYear =
-    patch.productionYear === undefined
-      ? item.ProductionYear
-      : patch.productionYear === null
-        ? undefined
-        : patch.productionYear;
-  const nextGenres = patch.genres ?? item.GenreItems?.map((genre) => genre.Name) ?? [];
-  const url = new URL(`${client.config.url}/Items/${id}`);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...client.authHeaders() },
-    body: JSON.stringify({
-      ...item,
-      Name: patch.name ?? item.Name,
-      Overview: nextOverview,
-      ProductionYear: nextProductionYear,
-      Genres: nextGenres,
-    }),
-  });
-  if (!res.ok) throw new Error(`Jellyfin update error: ${res.status}`);
+	const item = await getItem(client, id);
+	const nextOverview = patch.overview ?? item.Overview ?? "";
+	const nextProductionYear =
+		patch.productionYear === undefined
+			? item.ProductionYear
+			: patch.productionYear === null
+				? undefined
+				: patch.productionYear;
+	const nextGenres = patch.genres ?? item.GenreItems?.map((genre) => genre.Name) ?? [];
+	const url = new URL(`${client.config.url}/Items/${id}`);
+	const res = await fetch(url.toString(), {
+		method: "POST",
+		headers: { "Content-Type": "application/json", ...client.authHeaders() },
+		body: JSON.stringify({
+			...item,
+			Name: patch.name ?? item.Name,
+			Overview: nextOverview,
+			ProductionYear: nextProductionYear,
+			Genres: nextGenres,
+		}),
+	});
+	if (!res.ok) throw new Error(`Jellyfin update error: ${res.status}`);
 }
 
 export async function getRemoteImages(
-  client: JellyfinClient,
-  itemId: string,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	itemId: string,
+	type: ImageType = "Primary",
 ): Promise<JellyfinRemoteImageInfo[]> {
-  const data = await client.fetch<JellyfinRemoteImageResult>(`/Items/${itemId}/RemoteImages`, {
-    Type: type,
-  });
-  return data.Images ?? [];
+	const data = await client.fetch<JellyfinRemoteImageResult>(`/Items/${itemId}/RemoteImages`, {
+		Type: type,
+	});
+	return data.Images ?? [];
 }
 
 function toCoverCandidate(image: JellyfinRemoteImageInfo): JellyfinCoverCandidate | null {
-  const url = image.Url?.trim();
-  if (!url) {
-    return null;
-  }
+	const url = image.Url?.trim();
+	if (!url) {
+		return null;
+	}
 
-  return {
-    url,
-    thumbnailUrl: image.ThumbnailUrl?.trim() || url,
-    providerName: image.ProviderName?.trim() || "Unknown provider",
-    width: image.Width ?? undefined,
-    height: image.Height ?? undefined,
-    communityRating: image.CommunityRating ?? undefined,
-    voteCount: image.VoteCount ?? undefined,
-  };
+	return {
+		url,
+		thumbnailUrl: image.ThumbnailUrl?.trim() || url,
+		providerName: image.ProviderName?.trim() || "Unknown provider",
+		width: image.Width ?? undefined,
+		height: image.Height ?? undefined,
+		communityRating: image.CommunityRating ?? undefined,
+		voteCount: image.VoteCount ?? undefined,
+	};
 }
 
 function dedupeCoverCandidates(candidates: JellyfinCoverCandidate[]): JellyfinCoverCandidate[] {
-  const seen = new Set<string>();
-  const deduped: JellyfinCoverCandidate[] = [];
+	const seen = new Set<string>();
+	const deduped: JellyfinCoverCandidate[] = [];
 
-  for (const candidate of candidates) {
-    if (seen.has(candidate.url)) {
-      continue;
-    }
+	for (const candidate of candidates) {
+		if (seen.has(candidate.url)) {
+			continue;
+		}
 
-    seen.add(candidate.url);
-    deduped.push(candidate);
-  }
+		seen.add(candidate.url);
+		deduped.push(candidate);
+	}
 
-  return deduped;
+	return deduped;
 }
 
 function cleanTitleForCoverSearch(title: string): string {
-  return title
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/\[[^\]]*\]/g, " ")
-    .replace(/\b\d{1,3}\b/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+	return title
+		.replace(/\([^)]*\)/g, " ")
+		.replace(/\[[^\]]*\]/g, " ")
+		.replace(/\b\d{1,3}\b/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
 }
 
 function toHttps(url?: string | null): string | null {
-  if (!url) {
-    return null;
-  }
+	if (!url) {
+		return null;
+	}
 
-  return url.replace(/^http:\/\//i, "https://");
+	return url.replace(/^http:\/\//i, "https://");
 }
 
 function pickAuthor(item: JellyfinItem): string | undefined {
-  const author = item.People?.find((person) => {
-    const role = person.Role?.toLowerCase();
-    const personType = person.Type?.toLowerCase();
-    return role?.includes("author") || role?.includes("writer") || personType === "author";
-  });
+	const author = item.People?.find((person) => {
+		const role = person.Role?.toLowerCase();
+		const personType = person.Type?.toLowerCase();
+		return role?.includes("author") || role?.includes("writer") || personType === "author";
+	});
 
-  return author?.Name?.trim() || undefined;
+	return author?.Name?.trim() || undefined;
 }
 
 async function fetchOpenLibraryCandidates(
-  title: string,
-  author?: string,
+	title: string,
+	author?: string,
 ): Promise<JellyfinCoverCandidate[]> {
-  const queryUrl = new URL("https://openlibrary.org/search.json");
-  queryUrl.searchParams.set("title", title);
-  queryUrl.searchParams.set("limit", "6");
-  if (author) {
-    queryUrl.searchParams.set("author", author);
-  }
+	const queryUrl = new URL("https://openlibrary.org/search.json");
+	queryUrl.searchParams.set("title", title);
+	queryUrl.searchParams.set("limit", "6");
+	if (author) {
+		queryUrl.searchParams.set("author", author);
+	}
 
-  const response = await fetch(queryUrl.toString());
-  if (!response.ok) {
-    return [];
-  }
+	const response = await fetch(queryUrl.toString());
+	if (!response.ok) {
+		return [];
+	}
 
-  const payload = (await response.json()) as OpenLibrarySearchResponse;
-  const candidates: JellyfinCoverCandidate[] = [];
+	const payload = (await response.json()) as OpenLibrarySearchResponse;
+	const candidates: JellyfinCoverCandidate[] = [];
 
-  for (const doc of payload.docs ?? []) {
-    if (doc.cover_i) {
-      candidates.push({
-        url: `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`,
-        thumbnailUrl: `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`,
-        providerName: "Open Library",
-      });
-      continue;
-    }
+	for (const doc of payload.docs ?? []) {
+		if (doc.cover_i) {
+			candidates.push({
+				url: `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`,
+				thumbnailUrl: `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`,
+				providerName: "Open Library",
+			});
+			continue;
+		}
 
-    const isbn13 = doc.isbn?.find((value) => /^\d{13}$/.test(value));
-    if (isbn13) {
-      candidates.push({
-        url: `https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`,
-        thumbnailUrl: `https://covers.openlibrary.org/b/isbn/${isbn13}-M.jpg`,
-        providerName: "Open Library (ISBN)",
-      });
-      continue;
-    }
+		const isbn13 = doc.isbn?.find((value) => /^\d{13}$/.test(value));
+		if (isbn13) {
+			candidates.push({
+				url: `https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg`,
+				thumbnailUrl: `https://covers.openlibrary.org/b/isbn/${isbn13}-M.jpg`,
+				providerName: "Open Library (ISBN)",
+			});
+			continue;
+		}
 
-    if (doc.cover_edition_key) {
-      candidates.push({
-        url: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg`,
-        thumbnailUrl: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-M.jpg`,
-        providerName: "Open Library (Edition)",
-      });
-    }
-  }
+		if (doc.cover_edition_key) {
+			candidates.push({
+				url: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg`,
+				thumbnailUrl: `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-M.jpg`,
+				providerName: "Open Library (Edition)",
+			});
+		}
+	}
 
-  return candidates;
+	return candidates;
 }
 
 async function fetchGoogleBooksCandidates(
-  title: string,
-  author?: string,
+	title: string,
+	author?: string,
 ): Promise<JellyfinCoverCandidate[]> {
-  const queryUrl = new URL("https://www.googleapis.com/books/v1/volumes");
-  const queryParts = [`intitle:${title}`];
-  if (author) {
-    queryParts.push(`inauthor:${author}`);
-  }
+	const queryUrl = new URL("https://www.googleapis.com/books/v1/volumes");
+	const queryParts = [`intitle:${title}`];
+	if (author) {
+		queryParts.push(`inauthor:${author}`);
+	}
 
-  queryUrl.searchParams.set("q", queryParts.join("+"));
-  queryUrl.searchParams.set("maxResults", "5");
-  queryUrl.searchParams.set("printType", "books");
-  queryUrl.searchParams.set("langRestrict", "en");
+	queryUrl.searchParams.set("q", queryParts.join("+"));
+	queryUrl.searchParams.set("maxResults", "5");
+	queryUrl.searchParams.set("printType", "books");
+	queryUrl.searchParams.set("langRestrict", "en");
 
-  const response = await fetch(queryUrl.toString());
-  if (!response.ok) {
-    return [];
-  }
+	const response = await fetch(queryUrl.toString());
+	if (!response.ok) {
+		return [];
+	}
 
-  const payload = (await response.json()) as GoogleBooksResponse;
-  const candidates: JellyfinCoverCandidate[] = [];
+	const payload = (await response.json()) as GoogleBooksResponse;
+	const candidates: JellyfinCoverCandidate[] = [];
 
-  for (const entry of payload.items ?? []) {
-    const imageLinks = entry.volumeInfo?.imageLinks;
-    const best =
-      toHttps(imageLinks?.extraLarge) ??
-      toHttps(imageLinks?.large) ??
-      toHttps(imageLinks?.medium) ??
-      toHttps(imageLinks?.small) ??
-      toHttps(imageLinks?.thumbnail) ??
-      toHttps(imageLinks?.smallThumbnail);
+	for (const entry of payload.items ?? []) {
+		const imageLinks = entry.volumeInfo?.imageLinks;
+		const best =
+			toHttps(imageLinks?.extraLarge) ??
+			toHttps(imageLinks?.large) ??
+			toHttps(imageLinks?.medium) ??
+			toHttps(imageLinks?.small) ??
+			toHttps(imageLinks?.thumbnail) ??
+			toHttps(imageLinks?.smallThumbnail);
 
-    if (!best) {
-      continue;
-    }
+		if (!best) {
+			continue;
+		}
 
-    candidates.push({
-      url: best,
-      thumbnailUrl: best,
-      providerName: "Google Books",
-    });
-  }
+		candidates.push({
+			url: best,
+			thumbnailUrl: best,
+			providerName: "Google Books",
+		});
+	}
 
-  return candidates;
+	return candidates;
 }
 
 async function fetchExternalCoverCandidates(item: JellyfinItem): Promise<JellyfinCoverCandidate[]> {
-  const title = cleanTitleForCoverSearch(item.Name || "");
-  if (!title) {
-    return [];
-  }
+	const title = cleanTitleForCoverSearch(item.Name || "");
+	if (!title) {
+		return [];
+	}
 
-  const author = pickAuthor(item);
-  const [openLibrary, googleBooks] = await Promise.all([
-    fetchOpenLibraryCandidates(title, author),
-    fetchGoogleBooksCandidates(title, author),
-  ]);
+	const author = pickAuthor(item);
+	const [openLibrary, googleBooks] = await Promise.all([
+		fetchOpenLibraryCandidates(title, author),
+		fetchGoogleBooksCandidates(title, author),
+	]);
 
-  return dedupeCoverCandidates([...openLibrary, ...googleBooks]);
+	return dedupeCoverCandidates([...openLibrary, ...googleBooks]);
 }
 
 export async function getCoverCandidates(
-  client: JellyfinClient,
-  item: JellyfinItem,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	item: JellyfinItem,
+	type: ImageType = "Primary",
 ): Promise<JellyfinCoverCandidate[]> {
-  const remoteImages = await getRemoteImages(client, item.Id, type);
-  const remoteCandidates = remoteImages
-    .map((image) => toCoverCandidate(image))
-    .filter((image): image is JellyfinCoverCandidate => image !== null);
+	const remoteImages = await getRemoteImages(client, item.Id, type);
+	const remoteCandidates = remoteImages
+		.map((image) => toCoverCandidate(image))
+		.filter((image): image is JellyfinCoverCandidate => image !== null);
 
-  const externalCandidates = await fetchExternalCoverCandidates(item);
-  return dedupeCoverCandidates([...remoteCandidates, ...externalCandidates]);
+	const externalCandidates = await fetchExternalCoverCandidates(item);
+	return dedupeCoverCandidates([...remoteCandidates, ...externalCandidates]);
 }
 
 export async function getCoverCandidatesForItem(
-  client: JellyfinClient,
-  itemId: string,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	itemId: string,
+	type: ImageType = "Primary",
 ): Promise<JellyfinCoverCandidate[]> {
-  const item = await getItem(client, itemId);
-  return getCoverCandidates(client, item, type);
+	const item = await getItem(client, itemId);
+	return getCoverCandidates(client, item, type);
 }
 
 export async function downloadRemoteImage(
-  client: JellyfinClient,
-  itemId: string,
-  imageUrl: string,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	itemId: string,
+	imageUrl: string,
+	type: ImageType = "Primary",
 ): Promise<void> {
-  const queryUrl = new URL(`/Items/${itemId}/RemoteImages/Download`, client.config.url);
-  queryUrl.searchParams.set("type", type);
-  queryUrl.searchParams.set("imageUrl", imageUrl);
+	const queryUrl = new URL(`/Items/${itemId}/RemoteImages/Download`, client.config.url);
+	queryUrl.searchParams.set("type", type);
+	queryUrl.searchParams.set("imageUrl", imageUrl);
 
-  let res = await fetch(queryUrl.toString(), { method: "POST" });
-  if (!res.ok) {
-    // Compatibility fallback for servers expecting JSON body despite OpenAPI query contract.
-    res = await client.fetchRaw(`/Items/${itemId}/RemoteImages/Download`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Type: type,
-        ImageUrl: imageUrl,
-      }),
-    });
-  }
+	let res = await fetch(queryUrl.toString(), { method: "POST" });
+	if (!res.ok) {
+		// Compatibility fallback for servers expecting JSON body despite OpenAPI query contract.
+		res = await client.fetchRaw(`/Items/${itemId}/RemoteImages/Download`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				Type: type,
+				ImageUrl: imageUrl,
+			}),
+		});
+	}
 
-  if (!res.ok) {
-    const details = (await res.text()).trim();
-    throw new Error(
-      `Jellyfin remote image download error: ${res.status}${details ? ` ${details.slice(0, 160)}` : ""}`,
-    );
-  }
+	if (!res.ok) {
+		const details = (await res.text()).trim();
+		throw new Error(
+			`Jellyfin remote image download error: ${res.status}${details ? ` ${details.slice(0, 160)}` : ""}`,
+		);
+	}
 }
 
 function detectImageMimeType(bytes: Uint8Array): string | null {
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return "image/jpeg";
-  }
+	if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+		return "image/jpeg";
+	}
 
-  if (
-    bytes.length >= 8 &&
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47 &&
-    bytes[4] === 0x0d &&
-    bytes[5] === 0x0a &&
-    bytes[6] === 0x1a &&
-    bytes[7] === 0x0a
-  ) {
-    return "image/png";
-  }
+	if (
+		bytes.length >= 8 &&
+		bytes[0] === 0x89 &&
+		bytes[1] === 0x50 &&
+		bytes[2] === 0x4e &&
+		bytes[3] === 0x47 &&
+		bytes[4] === 0x0d &&
+		bytes[5] === 0x0a &&
+		bytes[6] === 0x1a &&
+		bytes[7] === 0x0a
+	) {
+		return "image/png";
+	}
 
-  if (
-    bytes.length >= 6 &&
-    bytes[0] === 0x47 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x38
-  ) {
-    return "image/gif";
-  }
+	if (
+		bytes.length >= 6 &&
+		bytes[0] === 0x47 &&
+		bytes[1] === 0x49 &&
+		bytes[2] === 0x46 &&
+		bytes[3] === 0x38
+	) {
+		return "image/gif";
+	}
 
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  ) {
-    return "image/webp";
-  }
+	if (
+		bytes.length >= 12 &&
+		bytes[0] === 0x52 &&
+		bytes[1] === 0x49 &&
+		bytes[2] === 0x46 &&
+		bytes[3] === 0x46 &&
+		bytes[8] === 0x57 &&
+		bytes[9] === 0x45 &&
+		bytes[10] === 0x42 &&
+		bytes[11] === 0x50
+	) {
+		return "image/webp";
+	}
 
-  return null;
+	return null;
 }
 
 function normalizeImageMimeType(value: string): string | null {
-  const normalized = value.split(";")[0]?.trim().toLowerCase() ?? "";
-  if (normalized === "image/jpg") {
-    return "image/jpeg";
-  }
+	const normalized = value.split(";")[0]?.trim().toLowerCase() ?? "";
+	if (normalized === "image/jpg") {
+		return "image/jpeg";
+	}
 
-  if (
-    normalized === "image/jpeg" ||
-    normalized === "image/png" ||
-    normalized === "image/gif" ||
-    normalized === "image/webp"
-  ) {
-    return normalized;
-  }
+	if (
+		normalized === "image/jpeg" ||
+		normalized === "image/png" ||
+		normalized === "image/gif" ||
+		normalized === "image/webp"
+	) {
+		return normalized;
+	}
 
-  return null;
+	return null;
 }
 
 type UploadMethod = "POST" | "PUT";
 
 type UploadAuthStrategy = {
-  label: string;
-  send: (path: string, init: RequestInit) => Promise<Response>;
+	label: string;
+	send: (path: string, init: RequestInit) => Promise<Response>;
 };
 
 type UploadTarget = {
-  method: UploadMethod;
-  path: string;
-  contentType: string;
+	method: UploadMethod;
+	path: string;
+	contentType: string;
 };
 
 function buildUploadTargets(
-  uploadPaths: string[],
-  uploadMethods: UploadMethod[],
-  contentTypes: string[],
+	uploadPaths: string[],
+	uploadMethods: UploadMethod[],
+	contentTypes: string[],
 ): UploadTarget[] {
-  const targets: UploadTarget[] = [];
-  for (const contentType of contentTypes) {
-    for (const path of uploadPaths) {
-      for (const method of uploadMethods) {
-        targets.push({ method, path, contentType });
-      }
-    }
-  }
+	const targets: UploadTarget[] = [];
+	for (const contentType of contentTypes) {
+		for (const path of uploadPaths) {
+			for (const method of uploadMethods) {
+				targets.push({ method, path, contentType });
+			}
+		}
+	}
 
-  return targets;
+	return targets;
 }
 
 async function buildUploadAuthStrategies(client: JellyfinClient): Promise<UploadAuthStrategy[]> {
-  const authStrategies: UploadAuthStrategy[] = [
-    {
-      label: "api-key",
-      send: (path, init) => client.fetchRaw(path, init),
-    },
-  ];
+	const authStrategies: UploadAuthStrategy[] = [
+		{
+			label: "api-key",
+			send: (path, init) => client.fetchRaw(path, init),
+		},
+	];
 
-  let playbackToken: string | null = null;
-  try {
-    playbackToken = (await client.getPlaybackAuth())?.token ?? null;
-  } catch {
-    playbackToken = null;
-  }
+	let playbackToken: string | null = null;
+	try {
+		playbackToken = (await client.getPlaybackAuth())?.token ?? null;
+	} catch {
+		playbackToken = null;
+	}
 
-  if (playbackToken) {
-    authStrategies.push({
-      label: "session-token",
-      send: (path, init) =>
-        {
-          // The session token wins over caller headers. Merging through Headers
-          // keeps them when the caller passes a Headers object or an array.
-          const headers = new Headers(init.headers);
-          for (const [key, value] of Object.entries(client.authHeaders(playbackToken))) {
-            headers.set(key, value);
-          }
-          return fetch(`${client.config.url}${path}`, { ...init, headers });
-        },
-    });
-  }
+	if (playbackToken) {
+		authStrategies.push({
+			label: "session-token",
+			send: (path, init) => {
+				// The session token wins over caller headers. Merging through Headers
+				// keeps them when the caller passes a Headers object or an array.
+				const headers = new Headers(init.headers);
+				for (const [key, value] of Object.entries(client.authHeaders(playbackToken))) {
+					headers.set(key, value);
+				}
+				return fetch(`${client.config.url}${path}`, { ...init, headers });
+			},
+		});
+	}
 
-  return authStrategies;
+	return authStrategies;
 }
 
 async function runUploadAttempt(
-  authStrategy: UploadAuthStrategy,
-  target: UploadTarget,
-  body: ArrayBuffer,
+	authStrategy: UploadAuthStrategy,
+	target: UploadTarget,
+	body: ArrayBuffer,
 ): Promise<string | null> {
-  const response = await authStrategy.send(target.path, {
-    method: target.method,
-    headers: {
-      "Content-Type": target.contentType,
-      Accept: "*/*",
-    },
-    body,
-  });
+	const response = await authStrategy.send(target.path, {
+		method: target.method,
+		headers: {
+			"Content-Type": target.contentType,
+			Accept: "*/*",
+		},
+		body,
+	});
 
-  if (response.ok) {
-    return null;
-  }
+	if (response.ok) {
+		return null;
+	}
 
-  const errorBody = (await response.text()).trim();
-  const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
-  return `[${authStrategy.label}] ${target.method} ${target.path} -> ${response.status}${bodySnippet}`;
+	const errorBody = (await response.text()).trim();
+	const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+	return `[${authStrategy.label}] ${target.method} ${target.path} -> ${response.status}${bodySnippet}`;
 }
 
 async function tryUploadItemImage(
-  client: JellyfinClient,
-  itemId: string,
-  type: ImageType,
-  imageBuffer: ArrayBuffer,
-  contentTypes: string[],
+	client: JellyfinClient,
+	itemId: string,
+	type: ImageType,
+	imageBuffer: ArrayBuffer,
+	contentTypes: string[],
 ): Promise<string[]> {
-  const uploadPaths = [
-    `/Items/${itemId}/Images/${type}`,
-    `/Items/${itemId}/Images/${type}?imageIndex=0`,
-    `/Items/${itemId}/Images/${type}/0`,
-  ];
-  const uploadMethods: UploadMethod[] = ["POST", "PUT"];
-  const attemptErrors: string[] = [];
+	const uploadPaths = [
+		`/Items/${itemId}/Images/${type}`,
+		`/Items/${itemId}/Images/${type}?imageIndex=0`,
+		`/Items/${itemId}/Images/${type}/0`,
+	];
+	const uploadMethods: UploadMethod[] = ["POST", "PUT"];
+	const attemptErrors: string[] = [];
 
-  const authStrategies = await buildUploadAuthStrategies(client);
-  const uploadTargets = buildUploadTargets(uploadPaths, uploadMethods, contentTypes);
+	const authStrategies = await buildUploadAuthStrategies(client);
+	const uploadTargets = buildUploadTargets(uploadPaths, uploadMethods, contentTypes);
 
-  for (const authStrategy of authStrategies) {
-    for (const target of uploadTargets) {
-      const attemptError = await runUploadAttempt(authStrategy, target, imageBuffer);
-      if (attemptError === null) {
-        return attemptErrors;
-      }
+	for (const authStrategy of authStrategies) {
+		for (const target of uploadTargets) {
+			const attemptError = await runUploadAttempt(authStrategy, target, imageBuffer);
+			if (attemptError === null) {
+				return attemptErrors;
+			}
 
-      attemptErrors.push(attemptError);
-    }
-  }
+			attemptErrors.push(attemptError);
+		}
+	}
 
-  return attemptErrors;
+	return attemptErrors;
 }
 
 async function deleteItemImageIfExists(
-  client: JellyfinClient,
-  itemId: string,
-  type: ImageType,
+	client: JellyfinClient,
+	itemId: string,
+	type: ImageType,
 ): Promise<void> {
-  const res = await client.fetchRaw(`/Items/${itemId}/Images/${type}?imageIndex=0`, {
-    method: "DELETE",
-  });
+	const res = await client.fetchRaw(`/Items/${itemId}/Images/${type}?imageIndex=0`, {
+		method: "DELETE",
+	});
 
-  // Ignore failures here; this is a best-effort cleanup before upload retry.
-  if (res.ok || res.status === 404) {
-    return;
-  }
+	// Ignore failures here; this is a best-effort cleanup before upload retry.
+	if (res.ok || res.status === 404) {
+		return;
+	}
 }
 
 async function fetchImageForUpload(imageUrl: string): Promise<{
-  headerContentType: string;
-  imageBuffer: ArrayBuffer;
+	headerContentType: string;
+	imageBuffer: ArrayBuffer;
 }> {
-  const sourceResponse = await fetch(imageUrl);
-  if (!sourceResponse.ok) {
-    throw new Error(`Cover source fetch failed: ${sourceResponse.status}`);
-  }
+	const sourceResponse = await fetch(imageUrl);
+	if (!sourceResponse.ok) {
+		throw new Error(`Cover source fetch failed: ${sourceResponse.status}`);
+	}
 
-  let headerContentType = sourceResponse.headers.get("content-type")?.toLowerCase() ?? "";
-  let imageBuffer = await sourceResponse.arrayBuffer();
-  let detectedType = detectImageMimeType(new Uint8Array(imageBuffer));
+	let headerContentType = sourceResponse.headers.get("content-type")?.toLowerCase() ?? "";
+	let imageBuffer = await sourceResponse.arrayBuffer();
+	let detectedType = detectImageMimeType(new Uint8Array(imageBuffer));
 
-  if (detectedType === "image/webp") {
-    const fallbackResponse = await fetch(imageUrl, {
-      headers: {
-        Accept: "image/jpeg,image/png,image/*;q=0.8,*/*;q=0.6",
-      },
-    });
+	if (detectedType === "image/webp") {
+		const fallbackResponse = await fetch(imageUrl, {
+			headers: {
+				Accept: "image/jpeg,image/png,image/*;q=0.8,*/*;q=0.6",
+			},
+		});
 
-    if (fallbackResponse.ok) {
-      const fallbackBuffer = await fallbackResponse.arrayBuffer();
-      const fallbackType = detectImageMimeType(new Uint8Array(fallbackBuffer));
-      if (fallbackType && fallbackType !== "image/webp") {
-        imageBuffer = fallbackBuffer;
-        headerContentType = fallbackResponse.headers.get("content-type")?.toLowerCase() ?? "";
-        detectedType = fallbackType;
-      }
-    }
-  }
+		if (fallbackResponse.ok) {
+			const fallbackBuffer = await fallbackResponse.arrayBuffer();
+			const fallbackType = detectImageMimeType(new Uint8Array(fallbackBuffer));
+			if (fallbackType && fallbackType !== "image/webp") {
+				imageBuffer = fallbackBuffer;
+				headerContentType = fallbackResponse.headers.get("content-type")?.toLowerCase() ?? "";
+				detectedType = fallbackType;
+			}
+		}
+	}
 
-  return {
-    headerContentType,
-    imageBuffer,
-  };
+	return {
+		headerContentType,
+		imageBuffer,
+	};
 }
 
 export async function uploadItemImageFromUrl(
-  client: JellyfinClient,
-  itemId: string,
-  imageUrl: string,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	itemId: string,
+	imageUrl: string,
+	type: ImageType = "Primary",
 ): Promise<void> {
-  const { headerContentType, imageBuffer } = await fetchImageForUpload(imageUrl);
-  const imageBytes = new Uint8Array(imageBuffer);
+	const { headerContentType, imageBuffer } = await fetchImageForUpload(imageUrl);
+	const imageBytes = new Uint8Array(imageBuffer);
 
-  const detectedContentType = detectImageMimeType(imageBytes);
-  const normalizedHeaderType = normalizeImageMimeType(headerContentType);
-  const uploadContentType = normalizedHeaderType ?? detectedContentType;
+	const detectedContentType = detectImageMimeType(imageBytes);
+	const normalizedHeaderType = normalizeImageMimeType(headerContentType);
+	const uploadContentType = normalizedHeaderType ?? detectedContentType;
 
-  if (!uploadContentType) {
-    throw new Error(
-      `Cover source is not a supported image: ${headerContentType || "unknown content-type"}`,
-    );
-  }
+	if (!uploadContentType) {
+		throw new Error(
+			`Cover source is not a supported image: ${headerContentType || "unknown content-type"}`,
+		);
+	}
 
-  const contentTypes = [uploadContentType];
-  if (detectedContentType && detectedContentType !== uploadContentType) {
-    contentTypes.push(detectedContentType);
-  }
+	const contentTypes = [uploadContentType];
+	if (detectedContentType && detectedContentType !== uploadContentType) {
+		contentTypes.push(detectedContentType);
+	}
 
-  let attemptErrors = await tryUploadItemImage(client, itemId, type, imageBuffer, contentTypes);
+	let attemptErrors = await tryUploadItemImage(client, itemId, type, imageBuffer, contentTypes);
 
-  if (attemptErrors.length > 0) {
-    await deleteItemImageIfExists(client, itemId, type);
-    attemptErrors = await tryUploadItemImage(client, itemId, type, imageBuffer, contentTypes);
-  }
+	if (attemptErrors.length > 0) {
+		await deleteItemImageIfExists(client, itemId, type);
+		attemptErrors = await tryUploadItemImage(client, itemId, type, imageBuffer, contentTypes);
+	}
 
-  if (attemptErrors.length === 0) {
-    return;
-  }
+	if (attemptErrors.length === 0) {
+		return;
+	}
 
-  const summary =
-    attemptErrors.length > 12
-      ? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
-      : attemptErrors.join(" | ");
-  throw new Error(
-    `Jellyfin image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
-  );
+	const summary =
+		attemptErrors.length > 12
+			? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
+			: attemptErrors.join(" | ");
+	throw new Error(
+		`Jellyfin image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
+	);
 }
 
 export async function applyRemoteImageWithFallback(
-  client: JellyfinClient,
-  itemId: string,
-  imageUrl: string,
-  type: ImageType = "Primary",
+	client: JellyfinClient,
+	itemId: string,
+	imageUrl: string,
+	type: ImageType = "Primary",
 ): Promise<"remote-download" | "binary-upload"> {
-  try {
-    await downloadRemoteImage(client, itemId, imageUrl, type);
-    return "remote-download";
-  } catch {
-    await uploadItemImageFromUrl(client, itemId, imageUrl, type);
-    return "binary-upload";
-  }
+	try {
+		await downloadRemoteImage(client, itemId, imageUrl, type);
+		return "remote-download";
+	} catch {
+		await uploadItemImageFromUrl(client, itemId, imageUrl, type);
+		return "binary-upload";
+	}
 }

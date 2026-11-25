@@ -1,12 +1,12 @@
 {
-  "extends": "@get-coral/tsconfig/base.json",
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+	"extends": "@get-coral/tsconfig/base.json",
+	"compilerOptions": {
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"outDir": "./dist",
+		"rootDir": "./src"
+	},
+	"include": ["src"],
+	"exclude": ["node_modules", "dist"]
 }

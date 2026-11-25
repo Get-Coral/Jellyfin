@@ -1,11 +1,11 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
-  "extends": ["./node_modules/@get-coral/biome-config/base.jsonc"],
-  "files": {
-    "includes": ["src/**", "*.ts", "*.json", "!dist", "!node_modules"]
-  },
-  "formatter": {
-    "indentStyle": "space",
-    "indentWidth": 2
-  }
+	"$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+	"extends": ["./node_modules/@get-coral/biome-config/base.jsonc"],
+	"files": {
+		"includes": ["src/**", "*.ts", "*.json", "!dist", "!node_modules"]
+	},
+	"formatter": {
+		"indentStyle": "space",
+		"indentWidth": 2
+	}
 }

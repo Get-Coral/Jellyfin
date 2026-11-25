@@ -1,10 +1,10 @@
 import type {
-  JellyfinActiveSession,
-  JellyfinItemCounts,
-  JellyfinSystemInfo,
-  JellyfinUser,
-  JellyfinUserPolicy,
-  JellyfinVirtualFolder,
+	JellyfinActiveSession,
+	JellyfinItemCounts,
+	JellyfinSystemInfo,
+	JellyfinUser,
+	JellyfinUserPolicy,
+	JellyfinVirtualFolder,
 } from "../types/index.js";
 import type { JellyfinClient } from "./client.js";
 
@@ -12,217 +12,217 @@ type UploadMethod = "POST" | "PUT";
 
 /** Base64-encode an ArrayBuffer in both Node and browser runtimes. */
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const nodeBuffer = (
-    globalThis as { Buffer?: { from(input: ArrayBuffer): { toString(encoding: string): string } } }
-  ).Buffer;
-  if (nodeBuffer) {
-    return nodeBuffer.from(buffer).toString("base64");
-  }
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+	const nodeBuffer = (
+		globalThis as { Buffer?: { from(input: ArrayBuffer): { toString(encoding: string): string } } }
+	).Buffer;
+	if (nodeBuffer) {
+		return nodeBuffer.from(buffer).toString("base64");
+	}
+	const bytes = new Uint8Array(buffer);
+	let binary = "";
+	for (let i = 0; i < bytes.length; i++) {
+		binary += String.fromCharCode(bytes[i]);
+	}
+	return btoa(binary);
 }
 
 export async function getSystemInfo(client: JellyfinClient): Promise<JellyfinSystemInfo> {
-  return client.fetch<JellyfinSystemInfo>("/System/Info");
+	return client.fetch<JellyfinSystemInfo>("/System/Info");
 }
 
 export async function getItemCounts(client: JellyfinClient): Promise<JellyfinItemCounts> {
-  return client.fetch<JellyfinItemCounts>("/Items/Counts", {
-    UserId: client.config.userId,
-  });
+	return client.fetch<JellyfinItemCounts>("/Items/Counts", {
+		UserId: client.config.userId,
+	});
 }
 
 export async function getActiveSessions(client: JellyfinClient): Promise<JellyfinActiveSession[]> {
-  return client.fetch<JellyfinActiveSession[]>("/Sessions");
+	return client.fetch<JellyfinActiveSession[]>("/Sessions");
 }
 
 export async function getUsers(client: JellyfinClient): Promise<JellyfinUser[]> {
-  return client.fetch<JellyfinUser[]>("/Users");
+	return client.fetch<JellyfinUser[]>("/Users");
 }
 
 export async function getUserById(client: JellyfinClient, userId: string): Promise<JellyfinUser> {
-  return client.fetch<JellyfinUser>(`/Users/${userId}`);
+	return client.fetch<JellyfinUser>(`/Users/${userId}`);
 }
 
 export async function updateUserPolicy(
-  client: JellyfinClient,
-  userId: string,
-  policy: JellyfinUserPolicy,
+	client: JellyfinClient,
+	userId: string,
+	policy: JellyfinUserPolicy,
 ): Promise<void> {
-  const url = new URL(`${client.config.url}/Users/${userId}/Policy`);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...client.authHeaders() },
-    body: JSON.stringify(policy),
-  });
-  if (!res.ok) throw new Error(`Update user policy: ${res.status}`);
+	const url = new URL(`${client.config.url}/Users/${userId}/Policy`);
+	const res = await fetch(url.toString(), {
+		method: "POST",
+		headers: { "Content-Type": "application/json", ...client.authHeaders() },
+		body: JSON.stringify(policy),
+	});
+	if (!res.ok) throw new Error(`Update user policy: ${res.status}`);
 }
 
 export async function patchUserPolicy(
-  client: JellyfinClient,
-  userId: string,
-  patch: Partial<JellyfinUserPolicy>,
+	client: JellyfinClient,
+	userId: string,
+	patch: Partial<JellyfinUserPolicy>,
 ): Promise<void> {
-  const user = await getUserById(client, userId);
-  const merged = { ...user.Policy, ...patch } as JellyfinUserPolicy;
-  await updateUserPolicy(client, userId, merged);
+	const user = await getUserById(client, userId);
+	const merged = { ...user.Policy, ...patch } as JellyfinUserPolicy;
+	await updateUserPolicy(client, userId, merged);
 }
 
 export async function disableUser(client: JellyfinClient, userId: string): Promise<void> {
-  await patchUserPolicy(client, userId, { IsDisabled: true });
+	await patchUserPolicy(client, userId, { IsDisabled: true });
 }
 
 export async function enableUser(client: JellyfinClient, userId: string): Promise<void> {
-  await patchUserPolicy(client, userId, { IsDisabled: false });
+	await patchUserPolicy(client, userId, { IsDisabled: false });
 }
 
 export async function deleteUser(client: JellyfinClient, userId: string): Promise<void> {
-  const res = await client.fetchRaw(`/Users/${userId}`, { method: "DELETE" });
-  if (!res.ok) throw new Error(`Delete user: ${res.status}`);
+	const res = await client.fetchRaw(`/Users/${userId}`, { method: "DELETE" });
+	if (!res.ok) throw new Error(`Delete user: ${res.status}`);
 }
 
 export async function createUser(
-  client: JellyfinClient,
-  name: string,
-  password: string,
+	client: JellyfinClient,
+	name: string,
+	password: string,
 ): Promise<JellyfinUser> {
-  const url = new URL(`${client.config.url}/Users/New`);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...client.authHeaders() },
-    body: JSON.stringify({ Name: name, Password: password }),
-  });
-  if (!res.ok) throw new Error(`Create user: ${res.status}`);
-  return res.json() as Promise<JellyfinUser>;
+	const url = new URL(`${client.config.url}/Users/New`);
+	const res = await fetch(url.toString(), {
+		method: "POST",
+		headers: { "Content-Type": "application/json", ...client.authHeaders() },
+		body: JSON.stringify({ Name: name, Password: password }),
+	});
+	if (!res.ok) throw new Error(`Create user: ${res.status}`);
+	return res.json() as Promise<JellyfinUser>;
 }
 
 export async function updateUserPassword(
-  client: JellyfinClient,
-  userId: string,
-  currentPassword: string,
-  newPassword: string,
+	client: JellyfinClient,
+	userId: string,
+	currentPassword: string,
+	newPassword: string,
 ): Promise<void> {
-  const res = await client.fetchRaw(`/Users/${userId}/Password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      Id: userId,
-      CurrentPw: currentPassword,
-      NewPw: newPassword,
-      ResetPassword: false,
-    }),
-  });
+	const res = await client.fetchRaw(`/Users/${userId}/Password`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			Id: userId,
+			CurrentPw: currentPassword,
+			NewPw: newPassword,
+			ResetPassword: false,
+		}),
+	});
 
-  if (!res.ok) throw new Error(`Update user password: ${res.status}`);
+	if (!res.ok) throw new Error(`Update user password: ${res.status}`);
 }
 
 export async function updateUserPrimaryImage(
-  client: JellyfinClient,
-  userId: string,
-  imageUrl: string,
+	client: JellyfinClient,
+	userId: string,
+	imageUrl: string,
 ): Promise<void> {
-  const path = `/Items/${encodeURIComponent(userId)}/RemoteImages/Download?Type=Primary&ImageUrl=${encodeURIComponent(
-    imageUrl.trim(),
-  )}`;
-  const res = await client.fetchRaw(path, { method: "POST" });
+	const path = `/Items/${encodeURIComponent(userId)}/RemoteImages/Download?Type=Primary&ImageUrl=${encodeURIComponent(
+		imageUrl.trim(),
+	)}`;
+	const res = await client.fetchRaw(path, { method: "POST" });
 
-  if (!res.ok) throw new Error(`Update user image: ${res.status}`);
+	if (!res.ok) throw new Error(`Update user image: ${res.status}`);
 }
 
 export async function uploadUserPrimaryImage(
-  client: JellyfinClient,
-  userId: string,
-  imageBuffer: ArrayBuffer,
-  contentType: string,
+	client: JellyfinClient,
+	userId: string,
+	imageBuffer: ArrayBuffer,
+	contentType: string,
 ): Promise<void> {
-  const normalizedContentType = contentType.trim().toLowerCase();
-  if (
-    normalizedContentType !== "image/jpeg" &&
-    normalizedContentType !== "image/png" &&
-    normalizedContentType !== "image/gif" &&
-    normalizedContentType !== "image/webp"
-  ) {
-    throw new Error(`Unsupported user image content type: ${contentType || "unknown"}`);
-  }
+	const normalizedContentType = contentType.trim().toLowerCase();
+	if (
+		normalizedContentType !== "image/jpeg" &&
+		normalizedContentType !== "image/png" &&
+		normalizedContentType !== "image/gif" &&
+		normalizedContentType !== "image/webp"
+	) {
+		throw new Error(`Unsupported user image content type: ${contentType || "unknown"}`);
+	}
 
-  const uploadPaths = [
-    `/UserImage?userId=${encodeURIComponent(userId)}`,
-    `/Users/${encodeURIComponent(userId)}/Images/Primary/0`,
-    `/Users/${encodeURIComponent(userId)}/Images/Primary`,
-  ];
-  const uploadMethods: UploadMethod[] = ["POST"];
-  const attemptErrors: string[] = [];
+	const uploadPaths = [
+		`/UserImage?userId=${encodeURIComponent(userId)}`,
+		`/Users/${encodeURIComponent(userId)}/Images/Primary/0`,
+		`/Users/${encodeURIComponent(userId)}/Images/Primary`,
+	];
+	const uploadMethods: UploadMethod[] = ["POST"];
+	const attemptErrors: string[] = [];
 
-  // Jellyfin's image endpoints have historically expected the body to be
-  // base64-encoded (the official web client base64s before POSTing), but some
-  // versions accept raw bytes. Try base64 first, then fall back to raw, so a
-  // single call works across server versions.
-  const bodies: Array<{ label: string; body: BodyInit }> = [
-    { label: "base64", body: arrayBufferToBase64(imageBuffer) },
-    { label: "raw", body: imageBuffer },
-  ];
+	// Jellyfin's image endpoints have historically expected the body to be
+	// base64-encoded (the official web client base64s before POSTing), but some
+	// versions accept raw bytes. Try base64 first, then fall back to raw, so a
+	// single call works across server versions.
+	const bodies: Array<{ label: string; body: BodyInit }> = [
+		{ label: "base64", body: arrayBufferToBase64(imageBuffer) },
+		{ label: "raw", body: imageBuffer },
+	];
 
-  for (const method of uploadMethods) {
-    for (const { label, body } of bodies) {
-      for (const path of uploadPaths) {
-        const response = await client.fetchRaw(path, {
-          method,
-          headers: {
-            "Content-Type": normalizedContentType,
-            Accept: "*/*",
-          },
-          body,
-        });
+	for (const method of uploadMethods) {
+		for (const { label, body } of bodies) {
+			for (const path of uploadPaths) {
+				const response = await client.fetchRaw(path, {
+					method,
+					headers: {
+						"Content-Type": normalizedContentType,
+						Accept: "*/*",
+					},
+					body,
+				});
 
-        if (response.ok) {
-          return;
-        }
+				if (response.ok) {
+					return;
+				}
 
-        const errorBody = (await response.text()).trim();
-        const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
-        attemptErrors.push(`${method} ${path} [${label}] -> ${response.status}${bodySnippet}`);
-      }
-    }
-  }
+				const errorBody = (await response.text()).trim();
+				const bodySnippet = errorBody ? ` ${errorBody.slice(0, 140)}` : "";
+				attemptErrors.push(`${method} ${path} [${label}] -> ${response.status}${bodySnippet}`);
+			}
+		}
+	}
 
-  const summary =
-    attemptErrors.length > 12
-      ? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
-      : attemptErrors.join(" | ");
-  throw new Error(
-    `Jellyfin user image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
-  );
+	const summary =
+		attemptErrors.length > 12
+			? `${attemptErrors.slice(0, 6).join(" | ")} | ... | ${attemptErrors.slice(-6).join(" | ")}`
+			: attemptErrors.join(" | ");
+	throw new Error(
+		`Jellyfin user image upload error: no upload strategy succeeded. ${summary || "no response details"}`,
+	);
 }
 
 export async function deleteUserPrimaryImage(
-  client: JellyfinClient,
-  userId: string,
+	client: JellyfinClient,
+	userId: string,
 ): Promise<void> {
-  const res = await client.fetchRaw(`/Users/${encodeURIComponent(userId)}/Images/Primary`, {
-    method: "DELETE",
-  });
-  // 404 means there was no image to remove — treat as success (idempotent).
-  if (!res.ok && res.status !== 404) {
-    throw new Error(`Delete user image: ${res.status}`);
-  }
+	const res = await client.fetchRaw(`/Users/${encodeURIComponent(userId)}/Images/Primary`, {
+		method: "DELETE",
+	});
+	// 404 means there was no image to remove — treat as success (idempotent).
+	if (!res.ok && res.status !== 404) {
+		throw new Error(`Delete user image: ${res.status}`);
+	}
 }
 
 export async function getVirtualFolders(client: JellyfinClient): Promise<JellyfinVirtualFolder[]> {
-  return client.fetch<JellyfinVirtualFolder[]>("/Library/VirtualFolders");
+	return client.fetch<JellyfinVirtualFolder[]>("/Library/VirtualFolders");
 }
 
 export async function scanAllLibraries(client: JellyfinClient): Promise<void> {
-  const url = new URL(`${client.config.url}/Library/Refresh`);
-  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
-  if (!res.ok) throw new Error(`Scan libraries: ${res.status}`);
+	const url = new URL(`${client.config.url}/Library/Refresh`);
+	const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
+	if (!res.ok) throw new Error(`Scan libraries: ${res.status}`);
 }
 
 export async function scanLibrary(client: JellyfinClient, itemId: string): Promise<void> {
-  const url = new URL(`${client.config.url}/Items/${itemId}/Refresh`);
-  const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
-  if (!res.ok) throw new Error(`Scan library: ${res.status}`);
+	const url = new URL(`${client.config.url}/Items/${itemId}/Refresh`);
+	const res = await fetch(url.toString(), { method: "POST", headers: client.authHeaders() });
+	if (!res.ok) throw new Error(`Scan library: ${res.status}`);
 }

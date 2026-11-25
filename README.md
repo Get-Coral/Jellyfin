@@ -25,21 +25,21 @@ npm install @get-coral/jellyfin
 ## Quick start
 
 ```ts
-import { createClient, getLibraryItems, fromJellyfin } from '@get-coral/jellyfin'
+import { createClient, getLibraryItems, fromJellyfin } from "@get-coral/jellyfin";
 
 const client = createClient({
-  url: 'http://192.168.1.10:8096',
-  apiKey: 'your-api-key',
-  userId: 'your-user-id',
-})
+	url: "http://192.168.1.10:8096",
+	apiKey: "your-api-key",
+	userId: "your-user-id",
+});
 
-const { Items } = await getLibraryItems(client, 'Movie', {
-  limit: 24,
-  sortBy: 'SortName',
-  watchStatus: 'unwatched',
-})
+const { Items } = await getLibraryItems(client, "Movie", {
+	limit: 24,
+	sortBy: "SortName",
+	watchStatus: "unwatched",
+});
 
-const movies = Items.map(item => fromJellyfin(client, item))
+const movies = Items.map((item) => fromJellyfin(client, item));
 ```
 
 ---
@@ -72,13 +72,13 @@ Set `clientName` to your app's name so it shows up correctly in Jellyfin's dashb
 
 ```ts
 const client = createClient({
-  url: process.env.JELLYFIN_URL,
-  apiKey: process.env.JELLYFIN_API_KEY,
-  userId: process.env.JELLYFIN_USER_ID,
-  clientName: 'KAPOW!',
-  deviceName: 'KAPOW! Web',
-  deviceId: 'kapow-web',
-})
+	url: process.env.JELLYFIN_URL,
+	apiKey: process.env.JELLYFIN_API_KEY,
+	userId: process.env.JELLYFIN_USER_ID,
+	clientName: "KAPOW!",
+	deviceName: "KAPOW! Web",
+	deviceId: "kapow-web",
+});
 ```
 
 ---
@@ -209,19 +209,19 @@ syncPlaybackState(client, input)
 ```ts
 // Sign a user in with their Jellyfin username/password.
 // Returns their identity and a real Jellyfin access token.
-const { user, accessToken, sessionId } = await authenticateUserByName(client, 'alice', 'secret')
+const { user, accessToken, sessionId } = await authenticateUserByName(client, "alice", "secret");
 
 // Act as that user: playback and progress sync run under their token
 const userClient = createClient({
-  url,
-  apiKey,
-  userId: user.Id,
-  accessToken,
-  deviceId: 'my-app-session-1234',
-})
+	url,
+	apiKey,
+	userId: user.Id,
+	accessToken,
+	deviceId: "my-app-session-1234",
+});
 
 // End the session again (revokes the token)
-await logoutUserSession(client, accessToken)
+await logoutUserSession(client, accessToken);
 ```
 
 Give every session a **unique `deviceId`** — Jellyfin revokes the previous token when the same user re-authenticates with the same device id, so a shared id makes concurrent sign-ins invalidate each other. `authenticateUserByName` throws a `JellyfinError` with status 401 for invalid credentials or disabled users.
@@ -250,13 +250,13 @@ subtitleUrl(client, itemId, mediaSourceId, streamIndex)
 Converts raw `JellyfinItem` objects into a normalised `MediaItem` shape. Useful for building UIs that don't want to deal with Jellyfin's raw API format.
 
 ```ts
-fromJellyfin(client, item)
+fromJellyfin(client, item);
 // → MediaItem — normalised shape with resolved image URLs and stream URL
 
-fromJellyfinDetailed(client, item)
+fromJellyfinDetailed(client, item);
 // → DetailedMediaItem — includes cast, studios, tags
 
-isResumable(item)
+isResumable(item);
 // → boolean — true if item has a resume position and hasn't been fully watched
 ```
 
@@ -265,19 +265,19 @@ isResumable(item)
 ### Admin
 
 ```ts
-getSystemInfo(client)       // → JellyfinSystemInfo
-getItemCounts(client)       // → JellyfinItemCounts
-getActiveSessions(client)   // → JellyfinActiveSession[]
+getSystemInfo(client); // → JellyfinSystemInfo
+getItemCounts(client); // → JellyfinItemCounts
+getActiveSessions(client); // → JellyfinActiveSession[]
 
-getUsers(client)
-getUserById(client, userId)
-createUser(client, name, password)
-deleteUser(client, userId)
-updateUserPolicy(client, userId, policy)
+getUsers(client);
+getUserById(client, userId);
+createUser(client, name, password);
+deleteUser(client, userId);
+updateUserPolicy(client, userId, policy);
 
-getVirtualFolders(client)   // → JellyfinVirtualFolder[]
-scanAllLibraries(client)
-scanLibrary(client, itemId)
+getVirtualFolders(client); // → JellyfinVirtualFolder[]
+scanAllLibraries(client);
+scanLibrary(client, itemId);
 ```
 
 ---
@@ -287,15 +287,15 @@ scanLibrary(client, itemId)
 All functions throw a `JellyfinError` on non-OK responses:
 
 ```ts
-import { JellyfinError } from '@get-coral/jellyfin'
+import { JellyfinError } from "@get-coral/jellyfin";
 
 try {
-  const item = await getItem(client, 'bad-id')
+	const item = await getItem(client, "bad-id");
 } catch (err) {
-  if (err instanceof JellyfinError) {
-    console.error(err.message) // 'Jellyfin API error on /Users/.../Items/bad-id: 404 Not Found'
-    console.error(err.status)  // 404
-  }
+	if (err instanceof JellyfinError) {
+		console.error(err.message); // 'Jellyfin API error on /Users/.../Items/bad-id: 404 Not Found'
+		console.error(err.status); // 404
+	}
 }
 ```
 
@@ -307,13 +307,13 @@ All types are exported from the package root:
 
 ```ts
 import type {
-  JellyfinItem,
-  JellyfinClientConfig,
-  MediaItem,
-  DetailedMediaItem,
-  JellyfinPlaybackSession,
-  // ... and more
-} from '@get-coral/jellyfin'
+	JellyfinItem,
+	JellyfinClientConfig,
+	MediaItem,
+	DetailedMediaItem,
+	JellyfinPlaybackSession,
+	// ... and more
+} from "@get-coral/jellyfin";
 ```
 
 ---
@@ -322,11 +322,11 @@ import type {
 
 This package is built and maintained as part of [Coral](https://getcoral.dev) — a reef of independent Docker modules that extend Jellyfin with modern UX.
 
-| Module | Description |
-|--------|-------------|
-| [🎬 Aurora](https://github.com/Get-Coral/aurora) | High-end cinematic Jellyfin frontend |
-| [🎤 KAPOW!](https://github.com/Get-Coral/KAPOW) | Karaoke queue manager for bars & events |
-| [📖 Fathom](https://github.com/Get-Coral/fathom) | Modern reading app from your NAS |
+| Module                                           | Description                             |
+| ------------------------------------------------ | --------------------------------------- |
+| [🎬 Aurora](https://github.com/Get-Coral/aurora) | High-end cinematic Jellyfin frontend    |
+| [🎤 KAPOW!](https://github.com/Get-Coral/KAPOW)  | Karaoke queue manager for bars & events |
+| [📖 Fathom](https://github.com/Get-Coral/fathom) | Modern reading app from your NAS        |
 
 ---
 
