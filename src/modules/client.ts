@@ -57,10 +57,11 @@ export class JellyfinClient {
 
   async fetchRaw(path: string, init?: RequestInit): Promise<Response> {
     const url = new URL(`${this.config.url}${path}`);
-    return fetch(url.toString(), {
-      ...init,
-      headers: { ...this.authHeaders(), ...init?.headers },
-    });
+    // Caller headers win over the auth headers. Merging through Headers keeps
+    // them when the caller passes a Headers object or an array of pairs.
+    const headers = new Headers(this.authHeaders());
+    new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+    return fetch(url.toString(), { ...init, headers });
   }
 
   buildAuthHeader(token?: string): string {

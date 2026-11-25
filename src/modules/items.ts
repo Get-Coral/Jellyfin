@@ -665,13 +665,15 @@ async function buildUploadAuthStrategies(client: JellyfinClient): Promise<Upload
     authStrategies.push({
       label: "session-token",
       send: (path, init) =>
-        fetch(`${client.config.url}${path}`, {
-          ...init,
-          headers: {
-            ...init.headers,
-            ...client.authHeaders(playbackToken),
-          },
-        }),
+        {
+          // The session token wins over caller headers. Merging through Headers
+          // keeps them when the caller passes a Headers object or an array.
+          const headers = new Headers(init.headers);
+          for (const [key, value] of Object.entries(client.authHeaders(playbackToken))) {
+            headers.set(key, value);
+          }
+          return fetch(`${client.config.url}${path}`, { ...init, headers });
+        },
     });
   }
 
